@@ -1,0 +1,337 @@
+/* ============================================================
+   PARALLAX PRESS — Common Knowledge Project
+   HOMEPAGE / "Main Page" layer  (loads AFTER press.css)
+   A civic broadsheet rendered as a wiki front page.
+   All color/type inherits from press.css tokens + primitives.
+   ============================================================ */
+
+/* density rhythm — one knob the whole page reads from */
+:root { --row: 17px; --mod-gap: 56px; }
+:root[data-density="packed"] { --row: 11px; --mod-gap: 38px; }
+
+/* ---------- HOMEPAGE PALETTE OVERRIDE ----------
+   Tone the warm-cream identity down to a neutral, near-white
+   reference ground (light) / neutral ink (dark). The brand accent
+   (oxblood / terracotta) is inherited from press.css, unchanged.
+   Scoped to home.css, so entry & domain pages keep the warm register. */
+:root {
+  --paper:   #FBFBF9;
+  --paper-2: #F2F2EF;
+  --paper-3: #E9E9E5;
+  --edge:    #E3E3DE;
+  --ink:     #1C1C1A;
+  --ink-2:   #50504B;
+  --ink-3:   #80807A;
+  --rule:    #DFDFDA;
+  --rule-2:  #C7C7C0;
+  --select:  #DCDCD4;
+}
+:root[data-theme="dark"] {
+  --paper:   #161616;
+  --paper-2: #1F1F1F;
+  --paper-3: #0F0F0F;
+  --edge:    #2A2A2A;
+  --ink:     #EAEAE6;
+  --ink-2:   #A6A6A0;
+  --ink-3:   #75756E;
+  --rule:    #2B2B2A;
+  --rule-2:  #444440;
+  --select:  #3A3A36;
+}
+
+/* ---------- WELCOME BAND ---------- */
+.welcome {
+  max-width: 1180px; margin: 0 auto;
+  padding: 58px 36px 0;
+  position: relative; z-index: 1;
+}
+:root[data-density="packed"] .welcome { padding-top: 40px; }
+.w-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: "Libre Franklin", sans-serif; font-weight: 600;
+  font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent);
+}
+.w-eyebrow .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rule-2); }
+.w-eyebrow .est { color: var(--ink-3); font-weight: 500; }
+.welcome h1 {
+  font-family: "Libre Caslon Display", Georgia, serif; font-weight: 400;
+  font-size: clamp(44px, 6.6vw, 88px); line-height: .98; letter-spacing: -.02em;
+  margin: 16px 0 0; max-width: 16em; text-wrap: balance;
+}
+.welcome .w-dek {
+  font-family: "Spectral", serif; font-weight: 400; font-style: normal;
+  font-size: clamp(19px, 2.1vw, 23px); line-height: 1.46; color: var(--ink-2);
+  margin: 20px 0 0; max-width: 38em; text-wrap: pretty;
+}
+
+/* utility row: search + the archive's vital statistics */
+.w-utility {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 22px 34px;
+  margin: 32px 0 0; padding: 22px 0 0; border-top: 1px solid var(--rule);
+}
+.searchbar {
+  display: flex; align-items: stretch; flex: 1 1 360px; max-width: 480px;
+  border: 1px solid var(--rule-2); background: var(--paper-2);
+  border-radius: 2px; box-shadow: var(--shadow); overflow: hidden;
+}
+.searchbar .s-ic { display: grid; place-items: center; padding-left: 14px; color: var(--ink-3); }
+.searchbar .s-ic svg { width: 17px; height: 17px; }
+.searchbar input {
+  flex: 1; min-width: 0; appearance: none; border: 0; background: transparent;
+  font-family: "Spectral", serif; font-size: 17px; color: var(--ink);
+  padding: 13px 12px;
+}
+.searchbar input::placeholder { color: var(--ink-3); font-style: italic; }
+.searchbar input:focus { outline: none; }
+.searchbar button {
+  appearance: none; cursor: pointer; border: 0;
+  font-family: "Libre Franklin", sans-serif; font-weight: 600; font-size: 11.5px;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--paper); background: var(--ink); padding: 0 20px;
+  transition: background .15s;
+}
+.searchbar button:hover { background: var(--accent); }
+
+.w-stats { display: flex; gap: 30px; margin-left: auto; }
+.w-stat .n {
+  font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 700;
+  font-size: 24px; line-height: 1; letter-spacing: -.01em;
+  color: var(--ink); white-space: nowrap;
+}
+.w-stat .l {
+  font-family: "Libre Franklin", sans-serif; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-3); margin-top: 5px;
+}
+@media (max-width: 680px) { .w-stats { margin-left: 0; gap: 22px; } }
+
+/* ---------- THE SIX DOMAINS ---------- */
+.domains {
+  max-width: 1180px; margin: 0 auto; padding: 52px 36px 0;
+  position: relative; z-index: 1;
+}
+:root[data-density="packed"] .domains { padding-top: 40px; }
+
+/* LAYOUT A · GRID */
+.domains-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+}
+@media (max-width: 860px) { .domains-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .domains-grid { grid-template-columns: 1fr; } }
+
+.dblock {
+  background: var(--paper); padding: 26px 28px 30px;
+  display: flex; flex-direction: column; min-height: 174px;
+  text-decoration: none; color: inherit; transition: background .15s;
+}
+.dblock:hover { background: var(--paper-2); }
+:root[data-density="packed"] .dblock { min-height: 0; padding: 18px 24px 20px; }
+.d-domain {
+  font-family: "Libre Franklin", sans-serif; font-weight: 700; font-size: 10.5px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+}
+.d-title {
+  font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 600; font-size: 20px;
+  line-height: 1.26; letter-spacing: -.006em; color: var(--ink);
+  margin: 11px 0 0; text-wrap: balance;
+}
+.dblock:hover .d-title { color: var(--accent); }
+.d-gloss {
+  font-family: "Spectral", serif; font-size: 14.5px; line-height: 1.44; color: var(--ink-2);
+  margin: 9px 0 0; text-wrap: pretty;
+}
+.d-gloss em { color: var(--ink-3); font-style: italic; }
+
+/* LAYOUT B · INDEX LIST — domain as a left-margin category tag */
+.domains-list { display: none; border-top: 1px solid var(--rule); }
+:root[data-domains="list"] .domains-grid { display: none; }
+:root[data-domains="list"] .domains-list { display: block; }
+.drow {
+  display: grid; grid-template-columns: 156px minmax(0, 1fr); gap: 0 32px;
+  align-items: baseline; padding: 22px 4px; border-bottom: 1px solid var(--rule);
+  text-decoration: none; color: inherit; transition: background .15s, padding .15s;
+}
+:root[data-density="packed"] .drow { padding: 14px 4px; }
+.drow:hover { background: var(--paper-2); padding-left: 12px; padding-right: 12px; }
+.dl-domain {
+  font-family: "Libre Franklin", sans-serif; font-weight: 700; font-size: 10.5px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--accent); padding-top: 7px;
+}
+.dl-title { display: block; font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.28; letter-spacing: -.006em; color: var(--ink); }
+.drow:hover .dl-title { color: var(--accent); }
+.dl-gloss { display: block; font-family: "Spectral", serif; font-size: 14px; color: var(--ink-2); line-height: 1.42; margin-top: 5px; max-width: 50em; text-wrap: pretty; }
+.dl-gloss em { color: var(--ink-3); font-style: italic; }
+@media (max-width: 680px) {
+  .drow { grid-template-columns: 1fr; }
+  .dl-domain { padding-top: 0; margin-bottom: 7px; }
+}
+
+/* ---------- SECONDARY STRIP (wiki modules, 3-up) ---------- */
+.subgrid {
+  max-width: 1180px; margin: 0 auto; padding: var(--mod-gap) 36px 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+  position: relative; z-index: 1;
+}
+.subgrid .col { padding: 0 34px; border-right: 1px solid var(--rule); min-width: 0; }
+.subgrid .col:first-child { padding-left: 0; }
+.subgrid .col:last-child { padding-right: 0; border-right: 0; }
+@media (max-width: 860px) {
+  .subgrid { grid-template-columns: 1fr; }
+  .subgrid .col { padding: 0; border-right: 0; }
+  .subgrid .col + .col { border-top: 1px solid var(--rule-2); margin-top: var(--mod-gap); padding-top: var(--mod-gap); }
+}
+
+/* ---------- THE METHOD (slim full-width band) ---------- */
+.method-band { max-width: 1180px; margin: var(--mod-gap) auto 0; padding: 0 36px; position: relative; z-index: 1; }
+.method-band .mb-inner {
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  padding: 22px 0; display: flex; gap: 16px 34px; align-items: baseline; flex-wrap: wrap;
+}
+.method-band p {
+  font-family: "Spectral", serif; font-size: 16.5px; line-height: 1.5; color: var(--ink-2);
+  margin: 0; flex: 1 1 460px; text-wrap: pretty;
+}
+.method-band p strong { color: var(--ink); font-weight: 600; }
+.method-band .mb-link {
+  font-family: "Libre Franklin", sans-serif; font-weight: 600; font-size: 12px;
+  letter-spacing: .04em; color: var(--accent); text-decoration: none; white-space: nowrap;
+}
+.method-band .mb-link:hover { text-decoration: underline; }
+
+/* ---------- MODULE CHROME (shared) ---------- */
+.mod { min-width: 0; }
+.mod + .mod { margin-top: var(--mod-gap); }
+.mod-head {
+  display: flex; align-items: baseline; gap: 14px;
+  padding-bottom: 9px; border-bottom: 1px solid var(--rule-2); margin-bottom: 4px;
+}
+.mod-title {
+  font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 700;
+  font-size: clamp(17px, 1.7vw, 20px); line-height: 1.1; margin: 0;
+  letter-spacing: .004em; color: var(--ink); white-space: nowrap;
+}
+.mod-kick {
+  margin-left: auto; flex-shrink: 0;
+  font-family: "Libre Franklin", sans-serif; font-weight: 600;
+  font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ============================================================
+   ASIDE MODULES
+   ============================================================ */
+
+/* — Did you know — */
+.dyk-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.dyk-list li {
+  padding: var(--row) 0; border-top: 1px solid var(--rule);
+  font-family: "Spectral", serif; font-size: 16.5px; line-height: 1.5; text-wrap: pretty;
+}
+.dyk-list li:first-child { border-top: 0; padding-top: 6px; }
+.dyk-list .lede { color: var(--accent); font-style: italic; }
+
+/* — Recently revised — */
+.rev-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.rev-list li { border-top: 1px solid var(--rule); }
+.rev-list li:first-child { border-top: 0; }
+.rev-list a {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: baseline;
+  padding: var(--row) 2px; text-decoration: none; color: inherit;
+  transition: background .15s, padding .15s;
+}
+.rev-list a:hover { background: var(--paper-2); padding-left: 8px; padding-right: 8px; }
+.rev-list .rv-ttl { font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 600; font-size: 16px; line-height: 1.22; color: var(--ink); grid-column: 1; grid-row: 1; }
+.rev-list .rv-gl  { grid-column: 1; grid-row: 2; font-size: 13.5px; color: var(--ink-2); line-height: 1.36; }
+.rev-list .rv-when {
+  grid-column: 2; grid-row: 1; align-self: baseline; text-align: right;
+  font-family: "Libre Franklin", sans-serif; font-size: 10.5px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+}
+.rev-list .rv-when .new { color: var(--accent); font-weight: 700; }
+
+/* — From the record — */
+.rec-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.rec-list li {
+  display: grid; grid-template-columns: auto 1fr; gap: 0 16px; align-items: baseline;
+  padding: var(--row) 0; border-top: 1px solid var(--rule);
+}
+.rec-list li:first-child { border-top: 0; }
+.rec-list .yr {
+  font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 700; font-size: 16px; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1.3;
+}
+.rec-list .ev { font-family: "Spectral", serif; font-size: 15.5px; line-height: 1.46; color: var(--ink); text-wrap: pretty; }
+.rec-list .ev a { color: inherit; }
+
+/* — The method (a small editorial aside) — */
+/* ---------- packed-only / airy-only reveals ---------- */
+.packed-only { display: none; }
+:root[data-density="packed"] .packed-only { display: revert; }
+:root[data-density="packed"] .rev-list .packed-only { display: grid; }
+
+/* keep specificity above the base list `li` rules (which set display) */
+.rec-list li.packed-only,
+.rev-list li.packed-only { display: none; }
+:root[data-density="packed"] .rec-list li.packed-only,
+:root[data-density="packed"] .rev-list li.packed-only { display: grid; }
+
+/* ============================================================
+   "PARALLAX PRESS ALSO" — sister-work strip (like wiki sisters)
+   ============================================================ */
+.also {
+  border-top: 1px solid var(--rule-2); margin-top: 84px;
+  max-width: 1180px; margin-left: auto; margin-right: auto; padding: 0 36px;
+}
+.also-inner {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  border-bottom: 1px solid var(--rule);
+}
+.also-cell {
+  padding: 34px 30px 34px 0; text-decoration: none; color: inherit;
+  border-right: 1px solid var(--rule); transition: background .15s;
+}
+.also-cell:last-child { border-right: 0; padding-right: 0; }
+.also-cell + .also-cell { padding-left: 30px; }
+.also-cell:hover { background: var(--paper-2); }
+.also-cell .ac-kick {
+  font-family: "Libre Franklin", sans-serif; font-weight: 600; font-size: 10px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--accent);
+}
+.also-cell .ac-ttl {
+  font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 600; font-size: 19px; line-height: 1.2;
+  letter-spacing: -.006em; color: var(--ink); margin: 10px 0 8px;
+}
+.also-cell .ac-gl { font-size: 14.5px; color: var(--ink-2); line-height: 1.42; }
+@media (max-width: 720px) {
+  .also-inner { grid-template-columns: 1fr; }
+  .also-cell { border-right: 0; border-bottom: 1px solid var(--rule); padding: 24px 0; }
+  .also-cell:last-child { border-bottom: 0; }
+  .also-cell + .also-cell { padding-left: 0; }
+}
+
+/* ============================================================
+   V2 MOBILE-FIRST REFINEMENTS — home layer
+   ============================================================ */
+@media (max-width: 700px) {
+  .welcome, .domains, .subgrid, .method-band, .also {
+    padding-left: 20px; padding-right: 20px;
+  }
+  .welcome { padding-top: 38px; }
+  .welcome h1 { font-size: clamp(34px, 9.5vw, 56px); }
+  .welcome .w-dek { font-size: 18px; }
+
+  .w-utility { gap: 18px; margin-top: 24px; padding-top: 20px; }
+  .searchbar { flex: 1 1 100%; max-width: none; }
+  .w-stats { margin-left: 0; width: 100%; gap: 26px; flex-wrap: wrap; }
+  .w-stat .n { font-size: 21px; }
+  .w-eyebrow { flex-wrap: wrap; gap: 6px 10px; }
+
+  .subgrid { padding-top: 40px; }
+  .also { margin-top: 56px; }
+}
+@media (max-width: 380px) {
+  .welcome h1 { font-size: 32px; }
+  .w-stats { gap: 18px; }
+  .w-stat .n { font-size: 19px; }
+}
