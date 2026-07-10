@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { contentPath, postPath, renderPost } from '../../lib/entry';
+
+export async function getStaticPaths() {
+  const corpus = await getCollection('entries');
+  const published = corpus.filter((e) => e.data.title && e.data.publish === true);
+  const posts = published.filter((e) => e.data.format === 'parallax-post');
+  return posts.map((e) => ({
+    params: { slug: postPath(e.data.title).split('/').filter(Boolean).pop() },
+    props: { entry: e, published, corpus },
+  }));
+}
+
+const { entry, published, corpus } = Astro.props;
+const d = entry.data;
+const byPub = new Map(published.map((e) => [e.data.title, e]));
+const resolve = (title) => byPub.has(title) ? contentPath(byPub.get(title).data) : null;
+const post = renderPost(entry.body || '', resolve);
+const byCorpus = new Map(corpus.map((e) => [e.data.title, e]));
+const related = post.related.map((r) => {
+  const target = byCorpus.get(r.title);
+  return {
+    name: r.alias || r.title,
+    href: target?.data?.publish === true ? contentPath(target.data) : null,
+    domain: target?.data?.domain || '',
+  };
+});
+const fmtDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return isNaN(+date) ? '' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+};
+const today = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+const canonicalPath = postPath(d.title);
+const citeUrl = `parallaxpress.org${canonicalPath}`;
+const title = `${d.title} — Parallax Press`;
+---
+<Base title={title} page="post" current="The Press" styles={['/assets/post.css']}>
+  <main class="wrap post-page" id="top">
+    <div class="ckp-grid entry-head post-head">
+      <div class="gi-main">
+        <span class="domain-eyebrow">Parallax Post <span class="num">Field guide</span></span>
+        <h1 class="entry-title">{d.title}</h1>
+        {d.dek && <p class="entry-dek">{d.dek}</p>}
+      </div>
+      <aside class="gi-left byline-rail">
+        <p class="meta-label">Published by</p>
+        <p class="meta-val"><span class="author">Parallax Press</span></p>
+        {d.published && <><p class="meta-label">Published</p><p class="meta-val">{fmtDate(d.published)}</p></>}
+        <p class="meta-label">Edition</p>
+        <p class="meta-val">First draft</p>
+        <a class="permalink" href="#top" aria-label="Permalink to the top of this Post">Permalink</a>
+      </aside>
+    </div>
+
+    <div class="ckp-grid"><hr class="rule-strong head-rule gi-read" /></div>
+
+    <article class="ckp-grid post-content">
+      <div class="gi-main post-body" set:html={post.html} />
+      <aside class="gi-left post-rail" aria-label="Document type">
+        <span class="rail-label">Layer 1.5</span>
+        <p>CKP material reassembled around a specific audience and purpose.</p>
+      </aside>
+    </article>
+
+    <div class="ckp-grid post-citation">
+      <div class="gi-read"><div class="cite-block">
+        <div class="cite-head"><span class="ch-label">Cite this Post</span><span class="ch-line"></span></div>
+        <p class="cite-text" id="citation">Parallax Press. <span class="ct-it">“{d.title}.”</span> Parallax Post{d.published ? `, ${fmtDate(d.published)}` : ''}, {citeUrl}. Accessed {today}.</p>
+        <div class="cite-foot"><button class="copy-cite" id="copy-cite">Copy citation</button><span class="cite-url">{citeUrl}</span></div>
+      </div></div>
+    </div>
+
+    {related.length > 0 && (
+      <section class="ckp-grid post-related" aria-labelledby="post-related-title">
+        <div class="gi-read">
+          <div class="related-head"><h2 id="post-related-title">Related foundations</h2><span class="rh-note">Source nodes in the Common Knowledge Project</span></div>
+          <ul class="post-related-list">
+            {related.map((item) => <li>
+              {item.href ? <a href={item.href}>{item.name}</a> : <span>{item.name}</span>}
+              {item.domain && <small>{item.domain}</small>}
+            </li>)}
+          </ul>
+        </div>
+      </section>
+    )}
+  </main>
+</Base>

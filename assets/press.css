@@ -26,6 +26,7 @@
   --seal-emboss-lo: rgba(70,52,28,.34);
   --shadow:       0 1px 2px rgba(40,30,12,.05), 0 12px 34px rgba(40,30,12,.07);
   --select:       #d9c7a0;
+  --gutter: clamp(24px, 5vw, 56px); /* responsive side gutter so content never hugs the edge */
 }
 
 /* ---------- Tokens : DARK (a full register, not a courtesy) ---------- */
@@ -108,8 +109,8 @@ body::before {
   border-bottom: 1px solid var(--rule);
 }
 .masthead-inner {
-  max-width: 1180px; margin: 0 auto;
-  padding: 14px 32px;
+  max-width: 1440px; margin: 0 auto;
+  padding: 14px var(--gutter);
   display: flex; align-items: center; gap: 22px;
 }
 .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
@@ -158,13 +159,15 @@ body::before {
 .ckp-grid {
   display: grid;
   grid-template-columns:
-    [lm] minmax(110px, 210px)
-    [main] minmax(0, var(--measure, 660px))
-    [rm] minmax(110px, 220px);
+    [lm] minmax(104px, 190px)
+    [main] minmax(0, var(--measure, 880px))
+    [rm] minmax(64px, 116px);
   column-gap: 44px;
   justify-content: center;
   width: 100%;
-  padding: 0 36px;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 0 var(--gutter);
 }
 .gi-main  { grid-column: main; }
 .gi-left  { grid-column: lm; }
@@ -175,14 +178,14 @@ body::before {
 @media (max-width: 900px) {
   .ckp-grid {
     grid-template-columns: [lm] 0 [main] minmax(0,1fr) [rm] 0;
-    column-gap: 0; padding: 0 26px;
+    column-gap: 0; padding: 0 var(--gutter);
   }
   .gi-left  { grid-column: main; text-align: left !important; }
   .gi-right { grid-column: main; }
 }
 
 /* ---------- Entry header ---------- */
-.entry-head { padding: 64px 0 0; }
+.entry-head { padding-top: 64px; }
 .domain-eyebrow {
   display: inline-flex; align-items: center; gap: 9px;
   font-family: "Libre Franklin", sans-serif; font-weight: 600;
@@ -238,7 +241,7 @@ body::before {
 .head-rule { margin: 40px 0 0; }
 
 /* ---------- Section marks (hang in the left margin) ---------- */
-.ckp-sec { padding: 46px 0 0; }
+.ckp-sec { padding-top: 46px; }
 .sec-mark { text-align: right; padding-top: 6px; }
 .sec-mark .sec-no {
   font-family: "Libre Caslon Display", Georgia, serif;
@@ -530,7 +533,7 @@ body::before {
   background: var(--paper-2);
 }
 .colophon-grid {
-  max-width: 1180px; margin: 0 auto; padding: 0 36px;
+  max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter);
   display: grid; grid-template-columns: auto 1fr auto; gap: 40px; align-items: start;
 }
 .colophon .seal { width: 86px; height: 86px; color: var(--ink); }
@@ -578,7 +581,7 @@ body::before {
    DOMAIN INDEX  ([data-domain-layout] = contents | register)
    ============================================================ */
 .domain-hero {
-  max-width: 1180px; margin: 0 auto; padding: 70px 36px 0;
+  max-width: 1440px; margin: 0 auto; padding: 70px var(--gutter) 0;
 }
 .domain-hero .dh-eyebrow {
   font-family: "Libre Franklin", sans-serif; font-weight: 600; font-size: 12px;
@@ -606,7 +609,7 @@ body::before {
   font-family: "Libre Franklin", sans-serif; font-size: 11px; letter-spacing: .12em;
   text-transform: uppercase; color: var(--ink-3); margin-top: 2px;
 }
-.domain-body { max-width: 1180px; margin: 0 auto; padding: 56px 36px 0; }
+.domain-body { max-width: 1440px; margin: 0 auto; padding: 56px var(--gutter) 0; }
 
 [data-domain-layout="register"] .di-contents { display: none; }
 [data-domain-layout="contents"] .di-register { display: none; }
@@ -686,7 +689,7 @@ body::before {
 .reg-card .density-dots i.on { background: var(--accent); }
 
 /* utility */
-.center-col { max-width: 1180px; margin: 0 auto; padding: 0 36px; }
+.center-col { max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter); }
 .skip { position: absolute; left: -9999px; }
 
 /* print: blind emboss reads, parallax slab fixed, no app chrome */
@@ -736,7 +739,7 @@ body::before {
 /* ---- V2 MOBILE-FIRST REFINEMENTS ---- */
 @media (max-width: 700px) {
   .masthead-inner, .domain-hero, .domain-body, .colophon-grid, .ckp-grid {
-    padding-left: 20px; padding-right: 20px;
+    padding-left: var(--gutter); padding-right: var(--gutter);
   }
   .masthead-inner { gap: 12px; padding-top: 12px; padding-bottom: 12px; }
   .mast-tools { margin-left: auto; }

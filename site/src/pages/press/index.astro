@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { postPath } from '../../lib/entry';
+
+const corpus = await getCollection('entries');
+const posts = corpus
+  .filter((entry) => entry.data.title && entry.data.publish === true && entry.data.format === 'parallax-post')
+  .sort((a, b) => String(b.data.published || '').localeCompare(String(a.data.published || '')));
+const fmtDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return isNaN(+date) ? '' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+};
+---
+<Base title="The Press — Parallax Press" page="press-index" current="The Press" styles={['/assets/post.css']}>
+  <main class="wrap press-index">
+    <header class="ckp-grid press-index-head">
+      <div class="gi-read">
+        <span class="domain-eyebrow">Parallax Press</span>
+        <h1 class="entry-title">The Press</h1>
+        <p class="entry-dek">Perspectival documents assembled from the Common Knowledge Project for a particular audience, place, or use.</p>
+      </div>
+    </header>
+    <div class="ckp-grid"><hr class="rule-strong head-rule gi-read" /></div>
+    <section class="ckp-grid press-list" aria-label="Published Parallax Posts">
+      <div class="gi-read">
+        {posts.length === 0 ? <p>No Posts have been published yet.</p> : posts.map((entry) => (
+          <article class="press-card">
+            <div class="press-card-meta"><span>Parallax Post</span>{entry.data.published && <time>{fmtDate(entry.data.published)}</time>}</div>
+            <h2><a href={postPath(entry.data.title)}>{entry.data.title}</a></h2>
+            {entry.data.dek && <p>{entry.data.dek}</p>}
+            <a class="press-card-link" href={postPath(entry.data.title)}>Read the field guide →</a>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</Base>

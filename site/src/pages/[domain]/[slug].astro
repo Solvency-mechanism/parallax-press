@@ -1,0 +1,148 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { parseEntry, slug, domainSlug, contentPath, ROMAN } from '../../lib/entry';
+
+export async function getStaticPaths() {
+  const corpus = await getCollection('entries');
+  // Publish gate: an entry goes live only when its frontmatter has `publish: true`.
+  const published = corpus.filter((e) => e.data.title && e.data.domain && e.data.publish === true);
+  const entries = published.filter((e) => e.data.format !== 'parallax-post');
+  return entries.map((e) => ({
+    params: { domain: domainSlug(e.data.domain), slug: slug(e.data.title) },
+    props: { entry: e, published, corpus },
+  }));
+}
+
+const { entry, published, corpus } = Astro.props;
+const d = entry.data;
+
+// in-text + related links resolve only to PUBLISHED pages (so no 404s)
+const byPub = new Map(published.map((e) => [e.data.title, e]));
+const resolve = (t) => (byPub.has(t) ? contentPath(byPub.get(t).data) : null);
+// glosses can come from any corpus entry's dek; weights count the WHOLE archive
+const byCorpus = new Map(corpus.map((e) => [e.data.title, e]));
+function inbound(title) {
+  let n = 0;
+  for (const e of corpus) {
+    const re = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g; let m;
+    while ((m = re.exec(e.body || ''))) if (m[1].trim() === title) n++;
+  }
+  return n;
+}
+
+const p = parseEntry(entry.body || '', resolve);
+const sections = [
+  { kicker: 'What it is',     h: 'What it is',                html: p.whatItIs },
+  { kicker: 'Why it matters', h: 'Why it matters',            html: p.whyItMatters },
+  { kicker: 'In practice',    h: 'How it works in practice',  html: p.inPractice },
+];
+const fmtDate = (s) => { if (!s) return ''; const dt = new Date(s); return isNaN(+dt) ? '' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(dt); };
+const today = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+const citeUrl = `parallaxpress.org/ckp/${domainSlug(d.domain)}/${slug(d.title)}`;
+const related = p.related.map((r) => {
+  const t = byCorpus.get(r.title);
+  const weight = inbound(r.title);
+  const viz = Math.min(16, Math.max(1, Math.round(Math.sqrt(weight))));
+  return { name: r.alias || r.title, gloss: t?.data.dek || '', domain: t?.data.domain || '', href: resolve(r.title) || '#', weight, viz };
+});
+const title = `${d.title} — The Common Knowledge Project · Parallax Press`;
+---
+<Base title={title} page="entry" current={d.domain}>
+<main class="wrap" id="top">
+  <div class="ckp-grid entry-head">
+    <div class="gi-main">
+      <span class="domain-eyebrow">{d.domain} {d.entry_number != null && <span class="num">Entry № {String(d.entry_number).padStart(2,'0')}</span>}</span>
+      <h1 class="entry-title" set:html={d.title.replace(/ /g,'&nbsp;')} />
+      {d.dek && <p class="entry-dek">{d.dek}</p>}
+    </div>
+    <aside class="gi-left byline-rail">
+      <p class="meta-label">Written by</p>
+      <p class="meta-val"><span class="author">Parallax Press</span></p>
+      {d.published && <><p class="meta-label">Published</p><p class="meta-val">{fmtDate(d.published)}</p></>}
+      {d.revised && <><p class="meta-label">Last revised</p><p class="meta-val">{fmtDate(d.revised)}</p></>}
+      <a class="permalink" href="#top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5" stroke-linecap="round"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5" stroke-linecap="round"/></svg>Permalink</a>
+    </aside>
+  </div>
+
+  <div class="ckp-grid"><hr class="rule-strong head-rule gi-read" /></div>
+
+  {sections.map((s, i) => (
+    <section class="ckp-grid ckp-sec">
+      <div class="gi-left sec-mark"><span class="sec-no">{ROMAN[i+1]}</span><span class="sec-kicker">{s.kicker}</span></div>
+      <div class="gi-main sec-body"><h2 class="sec-h">{s.h}</h2><Fragment set:html={s.html} /></div>
+    </section>
+  ))}
+
+  {p.parallax.length > 0 && (
+    <section class="ckp-grid ckp-sec parallax-section">
+      <div class="gi-left sec-mark"><span class="sec-no">IV</span><span class="sec-kicker">The Parallax</span></div>
+      <div class="gi-main sec-body">
+        <h2 class="sec-h">What they say <span style="color:var(--ink-3)">vs.</span> what’s true</h2>
+        <div class="parallax-zone px-slab">
+          {p.parallax.map((pr) => (
+            <div class="row">
+              <div class="cell say"><span class="px-tag say">What they say</span><Fragment set:html={pr.say} /></div>
+              <div class="cell true"><span class="px-tag true">What’s true</span><Fragment set:html={pr.truth} /></div>
+            </div>
+          ))}
+        </div>
+        <div class="parallax-zone px-margin">
+          {p.parallax.map((pr, i) => (<p class="claim"><span class="said" set:html={pr.say.replace(/^<p>|<\/p>\s*$/g,'') + `<sup>${i+1}</sup>`} /></p>))}
+        </div>
+        <div class="parallax-zone px-ledger">
+          {p.parallax.map((pr) => (
+            <div class="lrow">
+              <Fragment set:html={pr.say.replace('<p>','<p class="said">')} />
+              <div class="turn"><span class="lbl">In fact</span><span class="ln"></span></div>
+              <Fragment set:html={pr.truth.replace('<p>','<p class="truth">')} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <aside class="gi-right px-marginnotes">
+        {p.parallax.map((pr, i) => (<p class="rebut"><span class="rn">{i+1}</span><Fragment set:html={pr.truth.replace(/^<p>|<\/p>\s*$/g,'')} /></p>))}
+      </aside>
+    </section>
+  )}
+
+  {p.furtherReading.length > 0 && (
+    <section class="ckp-grid ckp-sec">
+      <div class="gi-left sec-mark"><span class="sec-no">V</span><span class="sec-kicker">Further reading</span></div>
+      <div class="gi-main sec-body"><h2 class="sec-h">Further reading</h2>
+        <ul class="reading-list">
+          {p.furtherReading.map((r) => (<li><span class="src-title" set:html={r.title.replace(/^<p>|<\/p>\s*$/g,'')} />{r.meta && <> — <span class="src-meta" set:html={r.meta.replace(/^<p>|<\/p>\s*$/g,'')} /></>}</li>))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <div class="ckp-grid" style="margin-top:64px;">
+    <div class="gi-read"><div class="cite-block">
+      <svg class="cite-seal" viewBox="0 0 200 200" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1"><circle cx="100" cy="100" r="95" /><circle cx="100" cy="100" r="90" stroke-width="3" /><circle cx="100" cy="100" r="64" /><line x1="62" y1="116" x2="138" y2="116" stroke-width="1.4" /><line x1="100" y1="60" x2="62" y2="116" stroke-width="1.4" /><line x1="100" y1="60" x2="138" y2="116" stroke-width="1.4" /><path d="M100 124 Q82 119 62 124 L62 145 Q82 141 100 146 Z" stroke-width="1.4" /><path d="M100 124 Q118 119 138 124 L138 145 Q118 141 100 146 Z" stroke-width="1.4" /><line x1="100" y1="124" x2="100" y2="146" stroke-width="1.2" /></g>
+        <g fill="currentColor"><path d="M100 46 L104 54 L112 58 L104 62 L100 70 L96 62 L88 58 L96 54 Z" /><circle cx="62" cy="116" r="2.6" /><circle cx="138" cy="116" r="2.6" /></g>
+      </svg>
+      <div class="cite-head"><span class="ch-label">Cite this entry</span><span class="ch-line"></span></div>
+      <p class="cite-text" id="citation">Parallax Press. <span class="ct-it">“{d.title}.”</span> The Common Knowledge Project{d.published ? `, ${fmtDate(d.published)}` : ''}, {citeUrl}. Accessed {today}.</p>
+      <div class="cite-foot"><button class="copy-cite" id="copy-cite">Copy citation</button><span class="cite-url">{citeUrl}</span></div>
+    </div></div>
+  </div>
+
+  {related.length > 0 && (
+    <div class="ckp-grid" style="margin-top:64px;"><div class="gi-read">
+      <div class="related-head"><h3>Related concepts</h3><span class="rh-note">Weight shows how often a concept is cited across the archive</span></div>
+      <ul class="related-list">
+        {related.map((r) => (
+          <li style={`--links:${r.viz};`}><a href={r.href}>
+            <span class="rc-name">{r.name}</span>
+            {r.gloss && <span class="rc-gloss">{r.gloss}</span>}
+            {r.domain && <span class="rc-domain">{r.domain}</span>}
+            <span class="rc-weight"><span class="bar"></span>{r.weight} links</span>
+          </a></li>
+        ))}
+      </ul>
+    </div></div>
+  )}
+</main>
+</Base>
