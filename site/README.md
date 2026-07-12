@@ -1,4 +1,4 @@
-# Parallax Press — Site Generator
+# Parallax Press Site Generator
 
 Generates the published Common Knowledge Project site **directly from the vault markdown**.
 Markdown is the verbatim source of truth: edit the `.md` files, rebuild, and the styled pages
@@ -23,7 +23,7 @@ Common Knowledge Project/
 ```
 
 The content loader reads an explicit publication manifest from the vault two levels up
-(`base: '../..'`), so the build only runs where the full vault exists — i.e. locally on your
+(`base: '../..'`), so the build only runs where the full vault exists, i.e. locally on your
 machine, not on Cloudflare. You build, then commit the generated HTML. The manifest prevents
 malformed or incomplete working notes elsewhere in the CKP from breaking production builds.
 
@@ -119,7 +119,7 @@ serif (Georgia) headings and loads no webfonts. These values define the approved
 | `--sidebar-w` | `11em` | left nav rail width |
 | `--gutter` | `clamp(16px, 4vw, 40px)` | side margin so content never hugs the edge |
 | shell `max-width` | `1400px` | header/content/footer width on large screens |
-| `.entry-head` / `.ckp-sec` | `padding-top` only | must NOT use `padding: x 0 0` (that zeroes the gutter) |
+| `.article-head` / `.article-section` | article header and section wrappers | Wikipedia article shell; `.article-section` has `overflow-x:auto` so wide tables never scroll the page |
 | related `--links` | `round(sqrt(realWeight))`, cap 16 | compressed visual weight; label shows the true count |
 
 `controls.js` carries only the runtime behaviors: theme toggle, mobile nav, search focus,

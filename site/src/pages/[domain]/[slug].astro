@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { parseEntry, slug, domainSlug, contentPath, ROMAN } from '../../lib/entry';
+import { parseEntry, slug, domainSlug, contentPath } from '../../lib/entry';
 
 export async function getStaticPaths() {
   const corpus = await getCollection('entries');
@@ -43,10 +43,9 @@ const citeUrl = `parallaxpress.org/ckp/${domainSlug(d.domain)}/${slug(d.title)}`
 const related = p.related.map((r) => {
   const t = byCorpus.get(r.title);
   const weight = inbound(r.title);
-  const viz = Math.min(16, Math.max(1, Math.round(Math.sqrt(weight))));
-  return { name: r.alias || r.title, gloss: t?.data.dek || '', domain: t?.data.domain || '', href: resolve(r.title) || '#', weight, viz };
+  return { name: r.alias || r.title, gloss: t?.data.dek || '', href: resolve(r.title) || '#', weight };
 });
-const title = `${d.title} — The Common Knowledge Project · Parallax Press`;
+const title = `${d.title} · The Common Knowledge Project · Parallax Press`;
 ---
 <Base title={title} page="entry" current={d.domain} styles={['/assets/post.css']}>
 <main class="wrap article" id="top">

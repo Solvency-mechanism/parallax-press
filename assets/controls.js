@@ -27,11 +27,6 @@
     navBtn.setAttribute("aria-expanded", String(!open));
   });
 
-  // Search focus shortcut (the input filters nothing server-side; this focuses it).
-  var searchBtn = document.getElementById("mast-search");
-  var searchInput = document.getElementById("site-search");
-  if (searchBtn && searchInput) searchBtn.addEventListener("click", function () { searchInput.focus(); });
-
   // Copy citation.
   var copyBtn = document.getElementById("copy-cite");
   if (copyBtn) copyBtn.addEventListener("click", function () {

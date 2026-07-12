@@ -35,7 +35,7 @@ const fmtDate = (value) => {
 const today = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 const canonicalPath = postPath(d.title);
 const citeUrl = `parallaxpress.org${canonicalPath}`;
-const title = `${d.title} — Parallax Press`;
+const title = `${d.title} · Parallax Press`;
 ---
 <Base title={title} page="post" current="The Press" styles={['/assets/post.css']}>
   <main class="wrap article" id="top">

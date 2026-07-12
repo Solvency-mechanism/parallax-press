@@ -14,7 +14,7 @@ const glosses = {
   'History': 'How the present arrangement was actually built.',
   'Institutions': 'The durable organizations that carry power across time.',
 };
-const featured = published[0];
+const featured = published.find((e) => e.data.format !== 'parallax-post') || published[0];
 const featuredPath = featured ? contentPath(featured.data) : '/press/';
 const count = published.length;
 ---
