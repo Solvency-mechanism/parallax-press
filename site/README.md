@@ -110,20 +110,25 @@ concept doesn't blow up the layout.
 
 ## Finalized layout spec (do not regress)
 
-These values in `assets/press.css` define the approved layout:
+`assets/press.css` is the Wikipedia (Vector 2022) skin. The design uses a system-sans body with
+serif (Georgia) headings and loads no webfonts. These values define the approved layout:
 
 | Knob | Value | Purpose |
 |---|---|---|
-| `--gutter` | `clamp(24px, 5vw, 56px)` | side margin so content never hugs the edge |
-| shell `max-width` | `1440px` | masthead/content/footer width on large screens |
-| `--measure` (main column) | `880px` | reading-column ceiling (kept < full width for readability) |
-| `lm` rail | `minmax(104px, 190px)` | left byline/section-number rail |
-| `rm` rail | `minmax(64px, 116px)` | right marginalia rail (trimmed; mostly empty) |
+| `--measure` | `46em` | reading-column ceiling (kept < full width for readability) |
+| `--sidebar-w` | `11em` | left nav rail width |
+| `--gutter` | `clamp(16px, 4vw, 40px)` | side margin so content never hugs the edge |
+| shell `max-width` | `1400px` | header/content/footer width on large screens |
 | `.entry-head` / `.ckp-sec` | `padding-top` only | must NOT use `padding: x 0 0` (that zeroes the gutter) |
 | related `--links` | `round(sqrt(realWeight))`, cap 16 | compressed visual weight; label shows the true count |
 
+`controls.js` carries only the runtime behaviors: theme toggle, mobile nav, search focus,
+copy-citation, and TOC scroll-spy. There is no design-toggle playground.
+
 ## Status / roadmap
 - ✅ Entry pages generate from markdown in the approved layout.
-- ⬜ Home page and domain index pages are still the hand-built static files at the repo root;
-  migrate them to generated pages, then switch Cloudflare to serve `site/dist/` directly and
-  retire the `publish-to-root` copy step.
+- ✅ Home page generates from `src/pages/index.astro` (the Main Page).
+- ✅ Domain index pages generate from `src/pages/[domain]/index.astro`.
+
+The homepage and domain indexes are no longer hand-built: they are Astro-generated and published
+to the repo root by `npm run publish`, alongside the entry and Press pages.

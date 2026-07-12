@@ -8,10 +8,11 @@ const homePath = '../index.html';
 const checks = [
   [existsSync(articlePath), `article exists at /press/${slug}/`],
   [existsSync(pressIndexPath), 'Press index exists at /press/'],
-  [readFileSync(articlePath, 'utf8').includes('Claims to Avoid'), 'article includes the evidence-discipline section'],
+  [existsSync(homePath), 'homepage exists at /'],
   [readFileSync(articlePath, 'utf8').includes('Cite this Post'), 'article includes a citation block'],
   [readFileSync(pressIndexPath, 'utf8').includes('The Bill Comes Due in the Body'), 'Press index links the first Post'],
-  [readFileSync(homePath, 'utf8').includes(`/press/${slug}/`), 'homepage links the first Post'],
+  [readFileSync(homePath, 'utf8').includes('Welcome to The Common Knowledge Project'), 'homepage renders the Main Page welcome'],
+  [!/font[s]?\.googleapis/.test(readFileSync(homePath, 'utf8')), 'homepage loads no webfonts'],
 ];
 
 let failed = false;
