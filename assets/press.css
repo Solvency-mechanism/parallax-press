@@ -5,83 +5,66 @@
           Libre Franklin (labels / civic snap)
    ============================================================ */
 
-/* ---------- Tokens : LIGHT (the default register) ---------- */
 :root {
-  --paper:        #EFE8D7;   /* warm cream ground            */
-  --paper-2:      #F7F2E7;   /* raised surface               */
-  --paper-3:      #E7DEC9;   /* sunk / inset                 */
-  --edge:         #E0D6BF;
-  --ink:          #221C14;   /* near-black, warm             */
-  --ink-2:        #5C5343;   /* muted body / meta            */
-  --ink-3:        #897F6B;   /* faint                        */
-  --rule:         #D2C6AC;
-  --rule-2:       #BBAD8C;
-  --accent:       #9A2C1B;   /* brick / oxblood              */
-  --accent-2:     #79200F;   /* deep                         */
-  --accent-soft:  #B5503D;
-  --slab-bg:      #211C14;   /* inverted artifact surface    */
-  --slab-ink:     #EFE8D7;
-  --slab-rule:    #4a4133;
-  --seal-emboss-hi: rgba(255,255,255,.78);
-  --seal-emboss-lo: rgba(70,52,28,.34);
-  --shadow:       0 1px 2px rgba(40,30,12,.05), 0 12px 34px rgba(40,30,12,.07);
-  --select:       #d9c7a0;
-  --gutter: clamp(24px, 5vw, 56px); /* responsive side gutter so content never hugs the edge */
+  --paper:         #f8f9fa;   /* page frame */
+  --surface:       #ffffff;   /* content background */
+  --ink:           #202122;
+  --ink-2:         #54595d;
+  --ink-3:         #72777d;
+  --border-strong: #a2a9b1;
+  --border:        #c8ccd1;
+  --border-soft:   #eaecf0;
+  --panel:         #f8f9fa;   /* infobox / TOC / table cell */
+  --panel-head:    #eaecf0;   /* table + box headers */
+  --link:          #3366cc;
+  --link-visited:  #795cb2;
+  --link-red:      #ba0000;   /* unresolved wikilink */
+  --link-red-visited: #a55858;
+  --gutter: clamp(16px, 4vw, 40px);
+  --measure: 46em;            /* reading column ceiling */
+  --sidebar-w: 11em;
+  --serif: "Linux Libertine", "Georgia", "Times New Roman", serif;
+  --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
-
-/* ---------- Tokens : DARK (a full register, not a courtesy) ---------- */
 :root[data-theme="dark"] {
-  --paper:        #16130D;
-  --paper-2:      #201B14;
-  --paper-3:      #110E09;
-  --edge:         #2C2619;
-  --ink:          #ECE2CD;
-  --ink-2:        #A99E86;
-  --ink-3:        #756B57;
-  --rule:         #322B1F;
-  --rule-2:       #483F2D;
-  --accent:       #D77152;   /* terracotta — legible on ink  */
-  --accent-2:     #E89274;
-  --accent-soft:  #C76A4E;
-  --slab-bg:      #0C0A06;
-  --slab-ink:     #ECE2CD;
-  --slab-rule:    #34301f;
-  --seal-emboss-hi: rgba(255,236,200,.10);
-  --seal-emboss-lo: rgba(0,0,0,.55);
-  --shadow:       0 1px 2px rgba(0,0,0,.3), 0 14px 40px rgba(0,0,0,.45);
-  --select:       #4a3f28;
+  --paper:         #101418;
+  --surface:       #1c1f24;
+  --ink:           #eaecf0;
+  --ink-2:         #c8ccd1;
+  --ink-3:         #a2a9b1;
+  --border-strong: #54595d;
+  --border:        #43464a;
+  --border-soft:   #2e3136;
+  --panel:         #27292d;
+  --panel-head:    #2e3136;
+  --link:          #6699ff;
+  --link-visited:  #a698dd;
+  --link-red:      #e0787a;
+  --link-red-visited: #c98080;
 }
 
 /* ---------- Reset / base ---------- */
 *,*::before,*::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: "Spectral", Georgia, serif;
-  font-size: 19px;
-  line-height: 1.62;
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  transition: background .4s ease, color .4s ease;
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
-::selection { background: var(--select); color: var(--ink); }
-img { max-width: 100%; display: block; }
-a { color: inherit; }
-
-/* paper grain — barely-there warmth, no texture imagery */
-body::before {
-  content: "";
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,.04), transparent 60%);
-  mix-blend-mode: soft-light;
-}
-:root[data-theme="dark"] body::before {
-  background: radial-gradient(120% 80% at 50% -10%, rgba(255,235,200,.05), transparent 60%);
-}
+img { max-width: 100%; }
+a { color: var(--link); text-decoration: none; }
+a:visited { color: var(--link-visited); }
+a:hover { text-decoration: underline; }
+a.clink[href="#"] { color: var(--link-red); }         /* unresolved wikilink -> red link */
+a.clink[href="#"]:visited { color: var(--link-red-visited); }
+::selection { background: #b5d5ff; color: var(--ink); }
+h1, h2 { font-family: var(--serif); font-weight: 400; line-height: 1.25;
+  border-bottom: 1px solid var(--border-strong); padding-bottom: .2em; margin: 1.2em 0 .5em; }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.5rem; }
+h3, h4, h5, h6 { font-family: var(--sans); font-weight: 700; line-height: 1.3; margin: 1.2em 0 .4em; }
+h3 { font-size: 1.15rem; } h4 { font-size: 1rem; }
+p { margin: 0 0 .8em; }
 
 /* ---------- Type primitives ---------- */
 .fr {  /* Libre Franklin — civic label face */
