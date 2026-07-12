@@ -1,0 +1,68 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { domainSlug, contentPath } from '../lib/entry';
+
+const corpus = await getCollection('entries');
+const published = corpus.filter((e) => e.data.title && e.data.publish === true);
+const domains = ['Labor','Capital','The State','Ideology','History','Institutions'];
+const glosses = {
+  'Labor': 'Work, wages, unions, and the terms on which people sell their time.',
+  'Capital': 'Ownership, finance, rent, and how money makes money.',
+  'The State': 'Law, enforcement, budgets, and the machinery of public power.',
+  'Ideology': 'The stories that make a given order feel natural.',
+  'History': 'How the present arrangement was actually built.',
+  'Institutions': 'The durable organizations that carry power across time.',
+};
+const featured = published[0];
+const featuredPath = featured ? contentPath(featured.data) : '/press/';
+const count = published.length;
+---
+<Base title="The Common Knowledge Project" page="home" current="" styles={['/assets/home.css']}>
+<main class="mainpage">
+  <section class="mp-welcome">
+    <h1>Welcome to The Common Knowledge Project</h1>
+    <p>The free reference archive that anyone can cite: {count} {count === 1 ? 'entry' : 'entries'} explaining how power, money, and work actually function, across {domains.length} domains. A project of Parallax Press.</p>
+  </section>
+
+  <div class="mp-cols">
+    <div class="mp-col">
+      <section class="mp-box">
+        <h2 class="mp-box-head">Featured entry</h2>
+        <div class="mp-box-body">
+          {featured ? (<>
+            <p><a href={featuredPath}><strong>{featured.data.title}</strong></a></p>
+            {featured.data.dek && <p>{featured.data.dek}</p>}
+          </>) : <p>The first entry is on its way.</p>}
+        </div>
+      </section>
+      <section class="mp-box">
+        <h2 class="mp-box-head">Did you know</h2>
+        <div class="mp-box-body">
+          <ul>
+            <li>...that this archive keeps a "What they say vs. what's true" ledger on every concept?</li>
+            <li>...that every entry is free to reproduce under CC BY-SA 4.0, with no accounts and no tracking?</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+    <div class="mp-col">
+      <section class="mp-box">
+        <h2 class="mp-box-head">Browse by domain</h2>
+        <div class="mp-box-body">
+          <ul class="mp-domains">
+            {domains.map((dn) => (<li><a href={`/${domainSlug(dn)}/`}><strong>{dn}</strong></a><span class="mp-gloss">{glosses[dn]}</span></li>))}
+          </ul>
+        </div>
+      </section>
+      <section class="mp-box">
+        <h2 class="mp-box-head">The Press</h2>
+        <div class="mp-box-body">
+          <p>Perspectival documents assembled from the archive for a particular audience or place.</p>
+          <p><a href="/press/">Read The Press &rsaquo;</a></p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+</Base>
