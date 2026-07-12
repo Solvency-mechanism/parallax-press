@@ -1,96 +1,59 @@
-/* Parallax Post — a perspectival document, distinct from CKP reference entries. */
+/* Article layout: reading column with a right-floated infobox. */
+.article { max-width: 62em; }         /* wider than base measure to host the infobox */
+.article-title { border-bottom: 1px solid var(--border-strong); }
+.article-sub { font-size: .82rem; color: var(--ink-3); margin: -.2em 0 1em; }
+.lead { font-size: 1.05rem; line-height: 1.6; }
 
-.post-head .entry-title { max-width: 13em; }
-.post-content { padding-top: 52px; }
-.post-rail {
-  padding-top: 6px;
-  color: var(--ink-3);
-  font-family: "Spectral", serif;
-  font-size: 14px;
-  line-height: 1.45;
-}
-.post-rail .rail-label {
-  display: block;
-  margin-bottom: 9px;
-  color: var(--accent);
-  font-family: "Libre Franklin", sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-.post-rail p { margin: 0; }
+/* Contents box */
+.toc { display: inline-block; min-width: 240px; max-width: 100%;
+  background: var(--panel); border: 1px solid var(--border); padding: 8px 14px;
+  margin: 4px 0 18px; font-size: .9rem; }
+.toc-head { font-family: var(--serif); font-weight: 700; text-align: center; margin: 2px 0 6px; }
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 2px 0; }
+.toc a { color: var(--link); }
+.toc a.active { font-weight: 700; }
+.toc-n { color: var(--ink-3); margin-right: 8px; font-variant-numeric: tabular-nums; }
 
-.post-body { font-size: 18px; line-height: 1.68; }
-.post-body > :first-child { margin-top: 0; }
-.post-body h2 {
-  margin: 2.2em 0 .65em;
-  font-family: "Libre Caslon Display", Georgia, serif;
-  font-size: clamp(29px, 3.2vw, 38px);
-  font-weight: 400;
-  letter-spacing: -.008em;
-  line-height: 1.12;
-}
-.post-body h3 {
-  margin: 1.8em 0 .55em;
-  font-family: "Libre Caslon Display", Georgia, serif;
-  font-size: clamp(23px, 2.5vw, 29px);
-  font-weight: 400;
-  line-height: 1.18;
-}
-.post-body p { margin: 0 0 1.15em; text-wrap: pretty; }
-.post-body ul,
-.post-body ol { margin: 0 0 1.35em; padding-left: 1.3em; }
-.post-body li { margin: 0 0 .55em; padding-left: .25em; }
-.post-body blockquote {
-  margin: 1.7em 0;
-  padding: 18px 22px;
-  border-left: 3px solid var(--accent);
-  background: var(--paper-3);
-  color: var(--ink-2);
-  font-family: "Spectral", serif;
-  font-size: 17px;
-  font-style: italic;
-}
-.post-body blockquote p { margin: 0; }
-.post-body a {
-  color: var(--ink);
-  text-decoration-color: var(--accent);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-.post-body a:hover { color: var(--accent); }
-.post-body hr { border: 0; border-top: 1px solid var(--rule); margin: 2.4em 0; }
-.post-citation { margin-top: 66px; }
-.post-related { padding-top: 54px; padding-bottom: 72px; }
-.post-related-list { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
-.post-related-list li { display: flex; justify-content: space-between; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
-.post-related-list a,
-.post-related-list span { color: var(--ink); font-family: "Spectral", serif; font-size: 17px; text-decoration: none; }
-.post-related-list a:hover { color: var(--accent); }
-.post-related-list small { color: var(--ink-3); font-family: "Libre Franklin", sans-serif; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+/* Infobox: floats right on desktop, stacks on mobile */
+.infobox { float: right; width: 22em; max-width: 100%; margin: 0 0 16px 22px;
+  background: var(--panel); border: 1px solid var(--border-strong); font-size: .875rem; }
+.ib-title { font-family: var(--serif); font-weight: 700; text-align: center;
+  background: var(--panel-head); padding: 8px 10px; margin: 0; border-bottom: 1px solid var(--border-strong); }
+.ib-num { font-weight: 400; color: var(--ink-2); }
+.infobox table { width: 100%; border-collapse: collapse; }
+.infobox th, .infobox td { text-align: left; vertical-align: top; padding: 5px 10px;
+  border-bottom: 1px solid var(--border-soft); }
+.infobox th { width: 40%; color: var(--ink-2); font-weight: 600; }
+.ib-cite { padding: 10px; border-top: 1px solid var(--border); }
+.ib-cite-head { font-weight: 700; margin: 0 0 4px; }
+.ib-cite-text { font-size: .82rem; color: var(--ink-2); margin: 0 0 8px; }
+.copy-cite { font: inherit; font-size: .8rem; cursor: pointer; padding: 4px 10px;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 2px; color: var(--link); }
+.copy-cite:hover { background: var(--border-soft); }
 
-.press-index-head { padding-top: 72px; }
-.press-index-head .entry-title { margin-top: 16px; }
-.press-list { padding-top: 46px; padding-bottom: 80px; }
-.press-card { padding: 34px 0 38px; border-bottom: 1px solid var(--rule); }
-.press-card:first-child { padding-top: 0; }
-.press-card-meta { display: flex; gap: 18px; color: var(--ink-3); font-family: "Libre Franklin", sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
-.press-card-meta span { color: var(--accent); }
-.press-card h2 { max-width: 20em; margin: 13px 0 9px; font-family: "Libre Caslon Display", Georgia, serif; font-size: clamp(30px, 4vw, 45px); font-weight: 400; line-height: 1.08; }
-.press-card h2 a { color: var(--ink); text-decoration: none; }
-.press-card h2 a:hover { color: var(--accent); }
-.press-card p { max-width: 48em; margin: 0 0 17px; color: var(--ink-2); font-family: "Spectral", serif; font-size: 18px; line-height: 1.55; }
-.press-card-link { color: var(--accent); font-family: "Libre Franklin", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
+.article-section { overflow-x: auto; }
+.article-section h2 .muted { color: var(--ink-3); }
 
-@media (max-width: 900px) {
-  .post-content { padding-top: 38px; }
-  .post-rail { margin-bottom: 28px; }
-}
+/* wikitable */
+.wikitable { border-collapse: collapse; margin: 12px 0; width: 100%;
+  border: 1px solid var(--border-strong); background: var(--surface); font-size: .95rem; }
+.wikitable caption { caption-side: top; text-align: left; font-size: .82rem; color: var(--ink-3); margin-bottom: 4px; }
+.wikitable th, .wikitable td { border: 1px solid var(--border-strong); padding: 8px 10px; vertical-align: top; text-align: left; }
+.wikitable thead th { background: var(--panel-head); font-weight: 700; }
+.parallax-table { table-layout: fixed; }
+.parallax-table th, .parallax-table td { width: 50%; }
 
-@media (max-width: 620px) {
-  .post-body { font-size: 17px; line-height: 1.62; }
-  .post-citation { margin-top: 48px; }
-  .post-related-list li { display: block; }
-  .post-related-list small { display: block; margin-top: 4px; }
+/* references + see also */
+.references { font-size: .9rem; color: var(--ink-2); padding-left: 1.6em; }
+.references li { margin: 3px 0; }
+.see-also { padding-left: 1.4em; }
+.see-also li { margin: 3px 0; }
+.sa-gloss { color: var(--ink-2); }
+.sa-weight { color: var(--ink-3); font-size: .85em; }
+
+@media (max-width: 720px) {
+  .article { max-width: var(--measure); }
+  .infobox { float: none; width: 100%; margin: 0 0 16px; }
+  .toc { display: block; }
 }
