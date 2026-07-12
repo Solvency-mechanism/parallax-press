@@ -14,26 +14,20 @@ const fmtDate = (value) => {
 };
 ---
 <Base title="The Press — Parallax Press" page="press-index" current="The Press" styles={['/assets/post.css']}>
-  <main class="wrap press-index">
-    <header class="ckp-grid press-index-head">
-      <div class="gi-read">
-        <span class="domain-eyebrow">Parallax Press</span>
-        <h1 class="entry-title">The Press</h1>
-        <p class="entry-dek">Perspectival documents assembled from the Common Knowledge Project for a particular audience, place, or use.</p>
-      </div>
+  <main class="wrap article press-index" id="top">
+    <header class="article-head">
+      <h1 class="article-title">The Press</h1>
+      <p class="article-sub">From The Common Knowledge Project</p>
     </header>
-    <div class="ckp-grid"><hr class="rule-strong head-rule gi-read" /></div>
-    <section class="ckp-grid press-list" aria-label="Published Parallax Posts">
-      <div class="gi-read">
-        {posts.length === 0 ? <p>No Posts have been published yet.</p> : posts.map((entry) => (
-          <article class="press-card">
-            <div class="press-card-meta"><span>Parallax Post</span>{entry.data.published && <time>{fmtDate(entry.data.published)}</time>}</div>
-            <h2><a href={postPath(entry.data.title)}>{entry.data.title}</a></h2>
-            {entry.data.dek && <p>{entry.data.dek}</p>}
-            <a class="press-card-link" href={postPath(entry.data.title)}>Read the field guide →</a>
-          </article>
-        ))}
-      </div>
-    </section>
+    <p class="lead">Perspectival documents assembled from the Common Knowledge Project for a particular audience, place, or use.</p>
+    <ul class="index-list">
+      {posts.length === 0 ? <li>No Posts have been published yet.</li> : posts.map((entry) => (
+        <li>
+          <a href={postPath(entry.data.title)}>{entry.data.title}</a>
+          {entry.data.published && <span class="idx-date"> · {fmtDate(entry.data.published)}</span>}
+          {entry.data.dek && <div class="idx-gloss">{entry.data.dek}</div>}
+        </li>
+      ))}
+    </ul>
   </main>
 </Base>

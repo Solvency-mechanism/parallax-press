@@ -57,3 +57,12 @@
   .infobox { float: none; width: 100%; margin: 0 0 16px; }
   .toc { display: block; }
 }
+
+/* Press: post kicker, cite infobox override, index list */
+.post-kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.post-cite { float: none; width: 100%; margin-top: 24px; }
+.index-list { list-style: none; padding: 0; }
+.index-list li { padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.index-list a { font-size: 1.05rem; }
+.idx-date { color: var(--ink-3); font-size: .85rem; }
+.idx-gloss { color: var(--ink-2); font-size: .9rem; margin-top: 2px; }
