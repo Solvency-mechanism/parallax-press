@@ -1,111 +1,143 @@
-# Design Spec: Em-Dash Scrubber
+# Design Spec: Deterministic Em-Dash Scrubber
 
 **Date:** 2026-07-11
-**Status:** Awaiting review
-**Depends on:** nothing. Ships independently of the redesign, but shares the site repo.
+**Revised:** 2026-07-13
+**Status:** Approved design, pending implementation
 
-> This document contains no em-dashes or en-dashes. It is its own smoke test.
+> This document contains no Unicode em dashes. It is its own smoke test.
 
-## Problem
+## Decision
 
-Sterling wants every em-dash removed from CKP copy and content. Two facts make this more than a find-and-replace:
+Replace every user-visible Unicode em dash (`U+2014`) with one ASCII hyphen-minus (`-`, `U+002D`). Preserve the whitespace already surrounding the character. Do not rewrite sentences, call an LLM, or change en dashes.
 
-1. **Removal must read grammatically.** An em-dash often marks a clause boundary. Deleting it, or blindly swapping a comma, can produce a comma splice, a run-on, or a dangling fragment. When a dash is "part of an article sentence," the sentence must be rewritten so it still reads correctly.
-2. **Em-dashes live in two places:** authored article content (CKP markdown notes pulled into the build) and site chrome copy (strings in `.astro`, `.css` comments, `.js`, taglines). Both need scrubbing.
-
-The build pipeline already exposes a text-transform seam: `smart()` in `site/src/lib/entry.ts` applies typography and today explicitly leaves em-dashes intact. That is the natural build-time integration point.
+The first application covers the currently published CKP Markdown sources and the Parallax Press site chrome. The command remains reusable for explicit paths elsewhere in the vault, but it never sweeps the whole Rhizome by default.
 
 ## Goals
 
-1. Guarantee the PUBLISHED site contains zero em-dashes and en-dashes in prose.
-2. Rewrite article sentences that contain a dash so they remain grammatical, not just dash-free.
-3. Never silently mutate authored prose: source rewrites are human-in-the-loop (diff, then approve).
-4. Ship as a reusable module usable across the vault, with a git hook as the primary trigger.
+1. Provide one deterministic transform whose output is always predictable.
+2. Remove Unicode em dashes from user-visible published CKP and Parallax Press text.
+3. Preserve filenames, Markdown structure, and Obsidian wikilink targets.
+4. Support preview, write, and automated check workflows.
+5. Verify that generated pages remain structurally sound after the replacement.
 
 ## Non-Goals
 
-- Not a general typography linter. Scope is em-dashes and en-dashes in prose. Hyphens stay.
-- Not a vault-wide forced rewrite. The default target is the site's content and chrome; it is pointable at any markdown folder, but it does not sweep the whole Rhizome unprompted.
-- No new external service dependency beyond the vault's existing Venice API integration (`Meta/Venice API/`), and it degrades gracefully when no API key is present.
+- No grammatical rewriting or punctuation selection.
+- No LLM or network dependency.
+- No en-dash replacement.
+- No filename or directory renaming.
+- No automatic vault-wide sweep.
+- No external push or production deployment as part of the initial run.
 
-## Design: two tiers, two modes, one hook
+## Transform Contract
 
-### The engine module
+The base transform is literal:
 
-`tools/scrub-emdashes.mjs` in the `parallax-press-live` repo (Node ESM, matching the Astro toolchain). Pure functions plus a CLI wrapper. Two tiers of transformation:
-
-**Tier 1: deterministic typographic pass.** Handles unambiguous cases by rule, no network:
-- Em/en-dash used as a hyphen inside a compound (`cost` dash `benefit`) becomes a hyphen.
-- Numeric range (`1995` dash `2005`) becomes `1995 to 2005` (dashes gone, per the requirement).
-- A spaced em-dash parenthetical that maps cleanly to a comma pair or a single comma is rewritten deterministically only when the surrounding tokens make a comma unambiguously correct (for example, a trailing dash before the final clause becomes a comma).
-- Everything Tier 1 cannot prove safe is flagged as "hard" and left for Tier 2.
-
-**Tier 2: LLM rewrite pass.** For clause-boundary dashes where a comma would splice or the correct replacement is ambiguous. The scrubber isolates the single sentence containing the dash and sends it to Venice/Kimi (per `Meta/Venice API/CLAUDE.md`: cheap, bulk, already wired via `kimi_vault_tools.py` / `venice_kimi.py`) with a tight instruction:
-
-> Rewrite this sentence to remove the em-dash or en-dash. Preserve the exact meaning and register. The result must be grammatical. Prefer, in order: a comma, a semicolon, a colon, a parenthetical, or splitting into two sentences. Return only the rewritten sentence, nothing else.
-
-The scrubber validates the return (still no dash present; length within a sane bound of the original) and, on failure, falls back to flagging the sentence for manual review rather than writing a bad rewrite.
-
-### Mode A: source-clean CLI
-
+```text
+input:  A clause - represented here with U+2014 in the actual test fixture - another clause
+rule:   U+2014 -> U+002D
+output: A clause - another clause
 ```
-node tools/scrub-emdashes.mjs <paths...> [--write] [--deterministic-only]
+
+The implementation must use an actual `U+2014` fixture in tests. The prose example above is written without that character so this design document remains a smoke test.
+
+Whitespace is not normalized. An unspaced em dash becomes an unspaced hyphen, and a spaced em dash retains its surrounding spaces.
+
+## Markdown and Wikilink Safety
+
+The scrubber operates on visible text while protecting structural targets.
+
+### Plain prose and frontmatter
+
+- Replace `U+2014` in Markdown prose.
+- Replace `U+2014` in human-facing frontmatter values such as `title` and `dek`.
+- Do not change path-bearing configuration values or filenames.
+
+### Obsidian wikilinks
+
+Wikilink targets must remain byte-for-byte unchanged.
+
+- `[[Target U+2014 Topic]]` gains a cleaned visible alias while preserving the target: `[[Target U+2014 Topic|Target - Topic]]`.
+- `[[Target U+2014 Topic|Visible U+2014 Label]]` keeps the target and cleans only the alias: `[[Target U+2014 Topic|Visible - Label]]`.
+- A wikilink with no em dash in its visible text remains unchanged.
+
+The implementation tests use actual `U+2014` characters for these cases.
+
+### Other protected structures
+
+- Do not alter fenced code blocks, inline code, URLs, or Markdown link destinations.
+- Site source processing is limited to human-facing Astro templates and the canonical CSS and JavaScript chrome files. Parser contracts and publication-manifest paths are not bulk-rewritten.
+
+## Command Interface
+
+Create `tools/scrub-emdashes.mjs` as a Node ESM command with three modes:
+
+```text
+node tools/scrub-emdashes.mjs <paths...>
+node tools/scrub-emdashes.mjs <paths...> --write
+node tools/scrub-emdashes.mjs <paths...> --check
 ```
-- Scans the given markdown (default target: the published CKP sources + the site's own source strings).
-- Prints a colored, unified dry-run diff of every proposed change, grouped by file, labeled Tier 1 (deterministic) or Tier 2 (LLM), plus a list of any sentences flagged for manual review.
-- Writes back ONLY with `--write`. Default is dry-run. This is the guard against silent prose mutation.
-- `--deterministic-only` skips the LLM tier (fast, free, offline; leaves hard cases flagged).
 
-### Mode B: build-time guard
+- Default mode is a dry run. It reports files and replacement counts without writing.
+- `--write` applies exactly the changes reported by the dry run.
+- `--check` writes nothing and exits nonzero if any replaceable user-visible em dash remains.
+- Explicit paths are required. The command has no implicit vault-root target.
 
-A deterministic assertion in the Astro pipeline, wired at the existing seam:
-- Extend `smart()` (or add a sibling transform in `entry.ts`) to run the Tier 1 pass on rendered content so any dash that slips through source cleaning is still removed from output.
-- Add a `prebuild`/build assertion that scans generated content and FAILS the build if any em/en-dash survives in prose. Deterministic only: the build does no network calls and never calls the LLM. The LLM tier lives only in the authoring CLI.
-- Net effect: even if an author commits a note with a raw dash, the published HTML is guaranteed dash-free (Tier 1 substitution), and the build screams if something unexpected survives.
+Add package scripts for the repository's approved Parallax source set so the common operation is reproducible without manually reconstructing paths.
 
-### The hook
+## Initial Application
 
-A git `pre-commit` hook in `parallax-press-live` that runs:
-```
-node tools/scrub-emdashes.mjs --check <staged .md .astro .css .js>
-```
-`--check` exits non-zero (blocking the commit) if any staged file contains an em-dash or en-dash, with a message pointing the author to run the CLI with `--write`. This gives Sterling all three of what he asked for: the hook (trigger), the module (engine), and the build backstop.
+Run the command with `--write` against:
 
-Installation: a tracked hook script under `tools/hooks/pre-commit` plus a one-line `git config core.hooksPath tools/hooks` (or an install note in the README), so the hook travels with the repo.
+1. Every Markdown file named by `PUBLISHED_SOURCES` in `site/src/content.config.ts`.
+2. Human-facing Parallax Press Astro templates under `site/src/pages/` and `site/src/layouts/`.
+3. Canonical site chrome in `assets/press.css`, related canonical CSS files, and `assets/controls.js`.
 
-## Scope of what it scrubs
+Do not rename the published Markdown file even when its filename contains an em dash. Do not rewrite the path string in `content.config.ts`.
 
-- Article body content: the published CKP markdown notes (respecting the same `PUBLISHED_SOURCES` manifest, extendable to any folder via CLI args).
-- Site chrome copy: strings in `Base.astro`, the page templates, `assets/*.css` comments and content, `assets/controls.js`.
-- Reusable: pointable at any markdown path in the vault for one-off cleaning, but it does not run vault-wide by default.
+After source cleaning, regenerate the local static site with the existing deploy pipeline. This updates generated HTML in the repository but does not push or deploy it externally.
 
-## Configuration
+## Verification
 
-- Default policy: remove ALL em-dashes and en-dashes from prose. Hyphens are never touched.
-- Optional allowlist file for any legitimate en-dash the project ever wants to keep (expected empty; Sterling wants them all gone).
-- Venice API: read the key from the same place the vault's Venice toolkit reads it. If absent, Mode A runs `--deterministic-only` automatically and flags hard cases; the hook and build guard (deterministic) still function fully offline.
+Implementation follows test-driven development. Tests are written and observed failing before production code is added.
+
+### Unit behavior
+
+- Plain prose replaces every `U+2014` with `-`.
+- Existing spaces are preserved exactly.
+- En dashes remain unchanged.
+- Fenced code, inline code, URLs, and link destinations remain unchanged.
+- Wikilink targets remain byte-for-byte unchanged.
+- Unaliased wikilinks with visible em dashes gain cleaned aliases.
+- Existing wikilink aliases are cleaned without changing targets.
+- Dry run writes nothing.
+- Write mode changes only files with eligible replacements.
+- Check mode returns success for clean inputs and nonzero for dirty inputs.
+
+### Repository and site integrity
+
+1. Run the scrubber test suite.
+2. Run the existing Parallax generated-site checks.
+3. Scan generated public HTML and fail if any user-visible `U+2014` remains.
+4. Extract every wikilink target from changed Markdown before and after the run and assert the target sets are identical.
+5. Scan the vault for unresolved wikilinks introduced by the changed published files.
+6. Inspect the git diff to confirm no filenames, manifest paths, or unrelated vault files changed.
 
 ## Files
 
 New:
-- `tools/scrub-emdashes.mjs` (engine + CLI)
-- `tools/hooks/pre-commit` (git hook)
-- `tools/README.md` (usage + install)
+
+- `tools/scrub-emdashes.mjs`
+- `tools/scrub-emdashes.test.mjs`
+- `tools/README.md`
 
 Touched:
-- `site/src/lib/entry.ts` (add the Tier 1 transform at the `smart()` seam)
-- `site/package.json` (a `scrub` script; a build-time assertion step)
-- root `README.md` or `tools/README.md` (hook install note)
 
-## Verification
+- `site/package.json`
+- Published CKP Markdown sources that contain user-visible em dashes
+- Parallax Press source chrome containing user-visible em dashes
+- Locally regenerated static HTML
 
-- Unit-level: a fixture set of sentences (compound, range, appositive, clause-boundary, dialogue) run through Tier 1 produces the expected deterministic output; hard cases are correctly flagged, not mangled.
-- Tier 2: with a Venice key present, a handful of real clause-boundary sentences from actual CKP notes rewrite to grammatical, dash-free sentences; the validator rejects any return that still contains a dash.
-- Mode A dry-run shows a correct diff and writes nothing; `--write` applies exactly what the diff showed.
-- Build guard: introduce a raw em-dash in a test note, confirm the build either substitutes it (Tier 1) in output and/or fails the assertion as designed.
-- Hook: staging a file containing an em-dash blocks the commit with the guidance message; staging a clean file commits normally.
-- Self-check: both spec documents and all new prose in this work contain no em-dashes.
+## Completion Criteria
 
-## Sequencing
-
-Ship AFTER the redesign lands (or in parallel; they touch mostly disjoint files). The only shared file is `entry.ts`, and only the em-dash spec modifies its `smart()` internals, so a clean merge order is: redesign first, scrubber second.
+The work is complete when the deterministic tool and tests pass, the approved source set has been cleaned, generated user-visible HTML contains no Unicode em dashes, all preexisting wikilink targets in changed Markdown are preserved, existing site checks pass, and the diff contains no filename changes or unrelated vault edits.
