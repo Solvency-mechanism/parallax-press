@@ -1,4 +1,4 @@
-# Parallax Press — Site Generator
+# Parallax Press Site Generator
 
 Generates the published Common Knowledge Project site **directly from the vault markdown**.
 Markdown is the verbatim source of truth: edit the `.md` files, rebuild, and the styled pages
@@ -23,7 +23,7 @@ Common Knowledge Project/
 ```
 
 The content loader reads an explicit publication manifest from the vault two levels up
-(`base: '../..'`), so the build only runs where the full vault exists — i.e. locally on your
+(`base: '../..'`), so the build only runs where the full vault exists, i.e. locally on your
 machine, not on Cloudflare. You build, then commit the generated HTML. The manifest prevents
 malformed or incomplete working notes elsewhere in the CKP from breaking production builds.
 
@@ -110,20 +110,25 @@ concept doesn't blow up the layout.
 
 ## Finalized layout spec (do not regress)
 
-These values in `assets/press.css` define the approved layout:
+`assets/press.css` is the Wikipedia (Vector 2022) skin. The design uses a system-sans body with
+serif (Georgia) headings and loads no webfonts. These values define the approved layout:
 
 | Knob | Value | Purpose |
 |---|---|---|
-| `--gutter` | `clamp(24px, 5vw, 56px)` | side margin so content never hugs the edge |
-| shell `max-width` | `1440px` | masthead/content/footer width on large screens |
-| `--measure` (main column) | `880px` | reading-column ceiling (kept < full width for readability) |
-| `lm` rail | `minmax(104px, 190px)` | left byline/section-number rail |
-| `rm` rail | `minmax(64px, 116px)` | right marginalia rail (trimmed; mostly empty) |
-| `.entry-head` / `.ckp-sec` | `padding-top` only | must NOT use `padding: x 0 0` (that zeroes the gutter) |
+| `--measure` | `46em` | reading-column ceiling (kept < full width for readability) |
+| `--sidebar-w` | `11em` | left nav rail width |
+| `--gutter` | `clamp(16px, 4vw, 40px)` | side margin so content never hugs the edge |
+| shell `max-width` | `1400px` | header/content/footer width on large screens |
+| `.article-head` / `.article-section` | article header and section wrappers | Wikipedia article shell; `.article-section` has `overflow-x:auto` so wide tables never scroll the page |
 | related `--links` | `round(sqrt(realWeight))`, cap 16 | compressed visual weight; label shows the true count |
+
+`controls.js` carries only the runtime behaviors: theme toggle, mobile nav, search focus,
+copy-citation, and TOC scroll-spy. There is no design-toggle playground.
 
 ## Status / roadmap
 - ✅ Entry pages generate from markdown in the approved layout.
-- ⬜ Home page and domain index pages are still the hand-built static files at the repo root;
-  migrate them to generated pages, then switch Cloudflare to serve `site/dist/` directly and
-  retire the `publish-to-root` copy step.
+- ✅ Home page generates from `src/pages/index.astro` (the Main Page).
+- ✅ Domain index pages generate from `src/pages/[domain]/index.astro`.
+
+The homepage and domain indexes are no longer hand-built: they are Astro-generated and published
+to the repo root by `npm run publish`, alongside the entry and Press pages.

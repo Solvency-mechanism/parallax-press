@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { domainSlug, contentPath } from '../../lib/entry';
+
+export async function getStaticPaths() {
+  const domains = ['Labor','Capital','The State','Ideology','History','Institutions'];
+  return domains.map((name) => ({ params: { domain: domainSlug(name) }, props: { name } }));
+}
+const { name } = Astro.props;
+const corpus = await getCollection('entries');
+const entries = corpus
+  .filter((e) => e.data.title && e.data.publish === true && e.data.domain === name && e.data.format !== 'parallax-post')
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+---
+<Base title={`${name}, The Common Knowledge Project`} page="domain" current={name} styles={['/assets/post.css']}>
+<main class="wrap article" id="top">
+  <header class="article-head">
+    <h1 class="article-title">{name}</h1>
+    <p class="article-sub">Domain, The Common Knowledge Project</p>
+  </header>
+  <p class="lead">Entries filed under {name}.</p>
+  {entries.length === 0
+    ? <p>No entries have been published in this domain yet.</p>
+    : <ul class="index-list">{entries.map((e) => (
+        <li><a href={contentPath(e.data)}>{e.data.title}</a>{e.data.dek && <div class="idx-gloss">{e.data.dek}</div>}</li>
+      ))}</ul>}
+</main>
+</Base>
