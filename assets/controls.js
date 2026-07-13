@@ -20,12 +20,17 @@
 
   // Mobile sidebar toggle.
   var navBtn = document.getElementById("nav-toggle");
+  var navClose = document.getElementById("nav-close");
   var body = document.querySelector(".site-body");
+  function setNav(open) {
+    body.setAttribute("data-nav", open ? "open" : "closed");
+    navBtn.setAttribute("aria-expanded", String(open));
+  }
   if (navBtn && body) navBtn.addEventListener("click", function () {
     var open = body.getAttribute("data-nav") === "open";
-    body.setAttribute("data-nav", open ? "closed" : "open");
-    navBtn.setAttribute("aria-expanded", String(!open));
+    setNav(!open);
   });
+  if (navClose && navBtn && body) navClose.addEventListener("click", function () { setNav(false); });
 
   // Copy citation.
   var copyBtn = document.getElementById("copy-cite");

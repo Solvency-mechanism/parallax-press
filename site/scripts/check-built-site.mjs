@@ -4,6 +4,10 @@ const slug = 'the-bill-comes-due-in-the-body-health-and-environmental-costs-in-t
 const articlePath = `../press/${slug}/index.html`;
 const pressIndexPath = '../press/index.html';
 const homePath = '../index.html';
+const controlsPath = '../assets/controls.js';
+
+const home = readFileSync(homePath, 'utf8');
+const controls = readFileSync(controlsPath, 'utf8');
 
 const checks = [
   [existsSync(articlePath), `article exists at /press/${slug}/`],
@@ -11,8 +15,9 @@ const checks = [
   [existsSync(homePath), 'homepage exists at /'],
   [readFileSync(articlePath, 'utf8').includes('Cite this Post'), 'article includes a citation block'],
   [readFileSync(pressIndexPath, 'utf8').includes('The Bill Comes Due in the Body'), 'Press index links the first Post'],
-  [readFileSync(homePath, 'utf8').includes('Welcome to The Common Knowledge Project'), 'homepage renders the Main Page welcome'],
-  [!/font[s]?\.googleapis/.test(readFileSync(homePath, 'utf8')), 'homepage loads no webfonts'],
+  [home.includes('Welcome to The Common Knowledge Project'), 'homepage renders the Main Page welcome'],
+  [!/font[s]?\.googleapis/.test(home), 'homepage loads no webfonts'],
+  [home.includes('id="nav-close"') && controls.includes('getElementById("nav-close")'), 'mobile navigation exposes a wired close control'],
 ];
 
 let failed = false;
