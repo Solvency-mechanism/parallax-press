@@ -20,3 +20,30 @@ test('dry run reports a replaceable em dash without writing', () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('scrubs visible Markdown while preserving protected structures', async () => {
+  const { scrubMarkdown } = await import('./scrub-emdashes.mjs');
+  const input = [
+    'plain—text and spaced — text and range 1999–2001',
+    '`code—value`',
+    '```js',
+    'const value = "keep—this";',
+    '```',
+    '[label—text](https://example.com/a—b)',
+    'https://example.com/raw—a',
+  ].join('\n');
+  const output = scrubMarkdown(input);
+  assert.match(output, /plain-text and spaced - text and range 1999–2001/);
+  assert.match(output, /`code—value`/);
+  assert.match(output, /keep—this/);
+  assert.match(output, /\[label-text\]\(https:\/\/example\.com\/a—b\)/);
+  assert.match(output, /https:\/\/example\.com\/raw—a/);
+});
+
+test('preserves wikilink targets and cleans their visible labels', async () => {
+  const { scrubMarkdown, extractWikilinkTargets } = await import('./scrub-emdashes.mjs');
+  const input = '[[Target—Topic]] and [[Other—Target|Visible—Label]]';
+  const output = scrubMarkdown(input);
+  assert.equal(output, '[[Target—Topic|Target-Topic]] and [[Other—Target|Visible-Label]]');
+  assert.deepEqual(extractWikilinkTargets(output), extractWikilinkTargets(input));
+});
