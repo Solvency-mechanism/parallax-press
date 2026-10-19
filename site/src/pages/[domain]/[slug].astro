@@ -19,13 +19,17 @@ const d = entry.data;
 
 // in-text + related links resolve only to PUBLISHED pages (so no 404s)
 const resolve = makeResolver(published);
-// glosses can come from any corpus entry's dek; weights count the WHOLE archive
-const byCorpus = new Map(corpus.map((e) => [e.data.title, e]));
+// Glosses and weights describe published pages only: a manifest note with its
+// publish flag off must not leak its dek. The weight counts distinct published
+// pages that cite the target, excluding the target itself.
+const byPublished = new Map(published.map((e) => [e.data.title, e]));
 function inbound(title) {
+  const target = resolve(title);
   let n = 0;
-  for (const e of corpus) {
+  for (const e of published) {
+    if (contentPath(e.data) === target) continue;
     const re = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g; let m;
-    while ((m = re.exec(e.body || ''))) if (m[1].trim() === title) n++;
+    while ((m = re.exec(e.body || ''))) if (resolve(m[1].trim()) === target) { n++; break; }
   }
   return n;
 }
@@ -40,9 +44,10 @@ const fmtDate = (s) => { if (!s) return ''; const dt = new Date(s); return isNaN
 const today = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 const citeUrl = `https://parallaxpress.org${contentPath(d)}`;
 const related = p.related.map((r) => {
-  const t = byCorpus.get(r.title);
-  const weight = inbound(r.title);
-  return { name: r.alias || r.title, gloss: t?.data.dek || '', href: resolve(r.title), weight };
+  const href = resolve(r.title);
+  if (!href) return { name: r.alias || r.title, gloss: '', href: null, weight: 0 };
+  const t = byPublished.get(r.title) || published.find((e) => contentPath(e.data) === href);
+  return { name: r.alias || r.title, gloss: t?.data.dek || '', href, weight: inbound(r.title) };
 });
 const title = `${d.title} · The Common Knowledge Project · Parallax Press`;
 ---

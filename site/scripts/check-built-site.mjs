@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 // Optional path allows the exact candidate to be checked before copying it.
@@ -54,18 +54,35 @@ function pages(dir) {
     return item.isDirectory() ? pages(path) : item.name.endsWith('.html') ? [path] : [];
   });
 }
+// Cloudflare paths are case-sensitive even though Windows is not, so resolve
+// each path segment against the real directory listing.
+function exactFile(path) {
+  const parts = path.split('/').filter(Boolean);
+  let dir = root;
+  for (const [i, part] of parts.entries()) {
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) return null;
+    if (!readdirSync(dir).includes(part)) return null;
+    dir = join(dir, part);
+    if (i === parts.length - 1 && statSync(dir).isFile()) return dir;
+  }
+  const index = join(dir, 'index.html');
+  return existsSync(index) && readdirSync(dir).includes('index.html') ? index : null;
+}
 let links = 0;
 for (const page of pages(root)) {
   const html = readFileSync(page, 'utf8');
   const route = '/' + page.slice(root.length + 1).replaceAll('\\', '/').replace(/index\.html$/, '');
   const url = new URL(route, 'https://parallaxpress.org');
-  for (const match of html.matchAll(/href="([^"]+)"/g)) {
-    const href = match[1].replaceAll('&amp;', '&');
-    if (href === '#') check(false, `${route} contains a dead # anchor`);
+  for (const match of html.matchAll(/\s(href|src)=(["'])(.*?)\2/g)) {
+    const href = match[3].replaceAll('&amp;', '&');
+    if (href === '#') { check(false, `${route} contains a dead # anchor`); continue; }
+    if (href.startsWith('//')) { check(false, `${route} contains a protocol-relative link ${href}`); continue; }
     const target = new URL(href, url);
     if (target.origin !== url.origin) continue;
-    const targetPath = join(root, decodeURIComponent(target.pathname), target.pathname.endsWith('/') ? 'index.html' : '');
-    if (!existsSync(targetPath)) check(false, `${route} links to missing ${href}`);
+    const pathname = decodeURIComponent(target.pathname);
+    if (/^\/(site|docs|tools)(\/|$)/.test(pathname)) check(false, `${route} links into unpublished repository files ${href}`);
+    const targetPath = exactFile(pathname);
+    if (!targetPath) check(false, `${route} links to missing ${href}`);
     else if (target.hash) {
       const id = decodeURIComponent(target.hash.slice(1));
       const destination = readFileSync(targetPath, 'utf8');
@@ -74,5 +91,15 @@ for (const page of pages(root)) {
     links++;
   }
 }
+
+// Cloudflare Pages serves 404.html with a 404 status; without it, unknown paths
+// return the homepage with 200. _redirects keeps repository internals private.
+const notFound = join(root, '404.html');
+check(existsSync(notFound) && readFileSync(notFound, 'utf8').includes('name="robots" content="noindex"'), 'noindex 404 page exists');
+const redirects = existsSync(join(root, '_redirects')) ? readFileSync(join(root, '_redirects'), 'utf8') : '';
+for (const dir of ['site', 'docs', 'tools']) {
+  check(redirects.includes(`/${dir}/* /not-found/`) && redirects.includes(`/${dir} /not-found/`), `_redirects hides /${dir}/`);
+}
+check(!exactFile('/not-found/'), 'redirect target stays unpublished so it returns 404');
 check(failures === 0, `${links} local links and fragments checked`);
 if (failures) process.exit(1);

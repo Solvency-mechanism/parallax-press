@@ -14,8 +14,15 @@ export function slug(s: string): string {
 export const domainSlug = (d: string) => slug(d);
 export const entryPath = (domain: string, title: string) => `/${domainSlug(domain)}/${slug(title)}/`;
 export const postPath = (title: string) => `/press/${slug(title)}/`;
-export const contentPath = (data: { title: string; domain?: string; format?: string }) =>
-  data.format === 'parallax-post' ? postPath(data.title) : entryPath(data.domain || '', data.title);
+export const contentPath = (data: { title: string; domain?: string; format?: string }) => {
+  if (data.format === 'parallax-post') return postPath(data.title);
+  // Without a domain the path would be protocol-relative (//slug/), a link to another host.
+  if (!data.domain) throw new Error(`Published reference has no domain: ${data.title}`);
+  return entryPath(data.domain, data.title);
+};
+
+// [[Target#Heading]] and [[Target^block]] point at the Target note.
+export const linkTarget = (target: string) => target.replace(/[#^].*$/, '').trim();
 
 // Markdown is preserved verbatim: changing quotes before parsing corrupts link
 // destinations, code, and exact wikilink identities.
@@ -24,7 +31,8 @@ const escapeHTML = (value: string) => value.replace(/&/g, '&amp;').replace(/</g,
 export function makeResolver(entries: any[]) {
   const paths = new Map<string, string>();
   for (const entry of entries.filter(e => e.data.publish === true && e.data.title)) {
-    const names = [entry.data.title, ...(entry.data.aliases || [])];
+    const aliases = entry.data.aliases;
+    const names = [entry.data.title, ...(typeof aliases === 'string' ? [aliases] : aliases || [])];
     if (entry.filePath) names.push(entry.filePath.replace(/\\/g, '/').split('/').pop().replace(/\.md$/i, ''));
     for (const name of names) {
       const path = contentPath(entry.data);
@@ -32,7 +40,7 @@ export function makeResolver(entries: any[]) {
       paths.set(name, path);
     }
   }
-  return (target: string) => paths.get(target) || null;
+  return (target: string) => paths.get(linkTarget(target)) || null;
 }
 
 function wikilinks(md: string, resolve: (t: string) => string | null): string {
@@ -91,7 +99,9 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
   text = extracted.body;
   const related = extracted.related;
   // split on ## headings
-  const parts = text.split(/^##\s+/m).slice(1);
+  const [preamble, ...parts] = text.split(/^##\s+/m);
+  // The template renders only the canonical sections, so anything else would vanish silently.
+  if (preamble.replace(/^\s*---\s*$/m, '').trim()) throw new Error('Reference has prose before its first section');
   const sec: Record<string, string> = {};
   let parallaxRaw = '';
   for (const p of parts) {
@@ -100,6 +110,7 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
     const bodyMd = p.slice(nl + 1).replace(/\n---\s*$/, '').trim();
     if (head.startsWith('what they say')) parallaxRaw = bodyMd;
     else if (HEAD_MAP[head]) sec[HEAD_MAP[head]] = bodyMd;
+    else throw new Error(`Reference has a section the template cannot render: ${head}`);
   }
   // parallax pairs: split on "**What they say:**"
   const parallax: ParallaxPair[] = [];

@@ -1,5 +1,5 @@
 ---
-const { title, page = 'entry', current = '', styles = [] } = Astro.props;
+const { title, page = 'entry', current = '', styles = [], noindex = false } = Astro.props;
 const domains = ['Labor','Capital','The State','Ideology','History','Institutions'];
 const dslug = (d) => d.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 ---
@@ -9,7 +9,7 @@ const dslug = (d) => d.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{title}</title>
-<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
 <link rel="stylesheet" href="/assets/press.css" />
 {styles.map((href) => <link rel="stylesheet" href={href} />)}
 <script is:inline>

@@ -29,6 +29,7 @@ const entries = defineCollection({
     format: z.string().optional(),
     audience: z.array(z.string()).optional(),
     'output-channel': z.string().optional(),
+    aliases: z.union([z.string(), z.array(z.string())]).optional(),
   }).passthrough(),
 });
 export const collections = { entries };

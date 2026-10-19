@@ -58,11 +58,23 @@ A push to the deployment-connected repository triggers hosting; pushing or deplo
 requires explicit approval after review. The legacy `deploy` script is a local shortcut
 for build/copy/check, but the separate commands above make the review boundaries clear.
 
-`npm run test:release` exercises published-only links, alias and filename resolution,
-source URL preservation, substantive Post headings, and complete reference sections.
+`npm run test:release` exercises published-only links, alias, filename and `#heading` resolution,
+source URL preservation, substantive Post headings, and complete reference sections. A reference
+with prose outside the five rendered sections, or a published reference without a domain, fails
+the build rather than losing content or emitting a broken link.
 `npm run check` verifies all eight release pages, canonical/citation URLs, the reading order,
-placeholders, and internal paths/fragments across the generated site. These checks do not
-certify the factual claims or remotely fetch cited sources.
+placeholders, and every internal `href`/`src` path and fragment across the generated site, compared
+case-sensitively as Cloudflare serves them. These checks do not certify the factual claims or
+remotely fetch cited sources.
+
+### What Cloudflare serves
+
+Cloudflare Pages serves this whole repository root, including `site/`, `docs/` and `tools/`.
+`public/_redirects` (copied to the root by `npm run publish`) redirects those paths to an
+unpublished address, so readers get the generated `404.html` with a 404 status instead of source
+files. Redirect rules apply even when a file exists. `npm run check` fails if either file is
+missing. Moving the Pages output to a folder that holds only generated files would be the
+cleaner long-term arrangement; it requires a Cloudflare dashboard change.
 
 ## Publishing an entry (the gate)
 
@@ -124,8 +136,9 @@ Repeat the pair for multiple rows. The generator renders all three CSS treatment
 
 ### Links & weights
 `[[Wikilinks]]` in the body resolve to other **published** entries (unresolved ones render as plain text).
-The "N links" weight on the related rail counts citations across the **publication manifest** (including sources whose publish flag is off), so the number reflects links among the selected sources. The visual size is √-compressed so a 146-link
-concept doesn't blow up the layout.
+The "cited by N" weight on the See also list counts distinct **published** pages that link to the
+target, excluding the target itself. Unpublished Related items show no gloss or weight. The visual
+size is √-compressed so a heavily cited concept doesn't blow up the layout.
 
 ## Finalized layout spec (do not regress)
 
