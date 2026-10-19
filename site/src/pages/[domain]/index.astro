@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { domainSlug, contentPath } from '../../lib/entry';
+import { domainSlug, contentPath, isAnalysis } from '../../lib/entry';
 
 export async function getStaticPaths() {
   const domains = ['Labor','Capital','The State','Ideology','History','Institutions'];
@@ -23,7 +23,7 @@ const entries = corpus
   {entries.length === 0
     ? <p>No entries have been published in this domain yet.</p>
     : <ul class="index-list">{entries.map((e) => (
-        <li><a href={contentPath(e.data)}>{e.data.title}</a>{e.data.dek && <div class="idx-gloss">{e.data.dek}</div>}</li>
+        <li><a href={contentPath(e.data)}>{e.data.title}</a>{isAnalysis(e.data) && <span class="idx-date"> · Analysis</span>}{e.data.dek && <div class="idx-gloss">{e.data.dek}</div>}</li>
       ))}</ul>}
 </main>
 </Base>

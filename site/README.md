@@ -31,8 +31,10 @@ malformed or incomplete working notes elsewhere in the CKP from breaking product
 
 Build from an isolated website task worktree inside the CKP folder. The source loader
 reads the sibling vault notes; those notes must contain the exact selected metadata.
-The current manifest selects seven sources for the Rural California release. All seven
-must also declare `publish: true` or the collection build deliberately fails.
+The current manifest selects thirteen sources for the Rural California collection: the
+original field guide and six references, plus the water-consolidation path (four references,
+one Layer 2 analysis and one Post). All must also declare `publish: true` or the collection
+build deliberately fails.
 
 ```powershell
 cd site
@@ -60,9 +62,10 @@ for build/copy/check, but the separate commands above make the review boundaries
 
 `npm run test:release` exercises published-only links, alias, filename and `#heading` resolution,
 source URL preservation, substantive Post headings, and complete reference sections. A reference
-with prose outside the five rendered sections, or a published reference without a domain, fails
-the build rather than losing content or emitting a broken link.
-`npm run check` verifies all eight release pages, canonical/citation URLs, the reading order,
+with prose outside the five rendered sections, a comparison section without `**What they say:**` /
+`**What's true:**` pairs, a `**Related:**` line without the `---` rule above it, or a published
+reference without a domain, fails the build rather than losing content or emitting a broken link.
+`npm run check` verifies all fifteen collection pages, canonical/citation URLs, the reading order,
 placeholders, and every internal `href`/`src` path and fragment across the generated site, compared
 case-sensitively as Cloudflare serves them. These checks do not certify the factual claims or
 remotely fetch cited sources.
@@ -124,6 +127,14 @@ dek: A one-line description for the article header and Press index.
 Unlike CKP reference entries, Posts may use audience-shaped headings. The Post template renders
 the full Markdown body, retains provenance and claims-discipline sections, extracts the curated
 `**Related:**` footer, and publishes a dedicated citation block.
+
+### Publishing a Layer 2 analysis
+
+A CKP note with `layer: 2` (and no `format: parallax-post`) is an argued interpretation, not a
+reference. It renders at its domain path like a reference, but keeps its own headings: the body is
+rendered in full like a Post, under an "Analysis" label, with the infobox citation and the curated
+`**Related:**` footer as See also. Domain indexes mark it "Analysis". It needs `publish: true`, a
+`domain`, and the `---` rule before `**Related:**`.
 
 ### The §IV parallax convention
 `## What They Say vs. What's True` may hold **one or many** say/true pairs. Each pair is:

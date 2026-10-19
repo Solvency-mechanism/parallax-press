@@ -11,9 +11,15 @@ const references = [
   '/the-state/human-right-to-water/',
   '/the-state/pesticide-exposure-in-the-san-joaquin-valley/',
   '/the-state/san-joaquin-valley-air-quality/',
+  '/the-state/drinking-water-system-consolidation/',
+  '/the-state/east-orosi-drinking-water-consolidation/',
+  '/the-state/matheny-tract-drinking-water-consolidation/',
+  '/the-state/tooleville-drinking-water-consolidation/',
 ];
+const waterGuide = '/press/a-right-is-not-yet-a-tap-following-east-orosis-water-project/';
+const analyses = ['/the-state/from-the-right-to-water-to-water-at-the-tap/'];
 const collection = '/collections/rural-california/';
-const release = [collection, guide, ...references];
+const release = [collection, guide, waterGuide, ...references, ...analyses];
 let failures = 0;
 function check(ok, message) {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${message}`);
@@ -38,6 +44,9 @@ for (const route of release) {
     for (const id of ['sec-0', 'sec-1', 'sec-2', 'sec-parallax', 'sec-reading']) {
       check(html.includes(`id="${id}"`), `${route} contains ${id}`);
     }
+  }
+  if (analyses.includes(route)) {
+    check(html.includes('class="post-kicker">Analysis<') && html.includes('class="post-body"'), `${route} is labelled and rendered as an analysis`);
   }
 }
 check(htmlAt('/').includes(`href="${collection}"`), 'homepage discovers the collection');

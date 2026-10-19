@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { parseEntry, slug, domainSlug, contentPath, makeResolver } from '../../lib/entry';
+import { parseEntry, renderPost, isAnalysis, slug, domainSlug, contentPath, makeResolver } from '../../lib/entry';
 
 export async function getStaticPaths() {
   const corpus = await getCollection('entries');
@@ -34,7 +34,12 @@ function inbound(title) {
   return n;
 }
 
-const p = parseEntry(entry.body || '', resolve);
+const analysis = isAnalysis(d) ? renderPost(entry.body || '', resolve) : null;
+// article-section scrolls a wide comparison table instead of the whole page on phones.
+const analysisHTML = analysis?.html.replace(/<table>/g, '<div class="article-section"><table>').replace(/<\/table>/g, '</table></div>');
+const p = analysis
+  ? { whatItIs: '', whyItMatters: '', inPractice: '', parallax: [], furtherReading: [], related: analysis.related }
+  : parseEntry(entry.body || '', resolve);
 const sections = [
   { kicker: 'What it is',     h: 'What it is',                html: p.whatItIs },
   { kicker: 'Why it matters', h: 'Why it matters',            html: p.whyItMatters },
@@ -55,13 +60,14 @@ const title = `${d.title} · The Common Knowledge Project · Parallax Press`;
 <main class="wrap article" id="top">
   <article>
     <header class="article-head">
+      {analysis && <span class="post-kicker">Analysis</span>}
       <h1 class="article-title">{d.title}</h1>
-      <p class="article-sub">From The Common Knowledge Project, the free reference archive</p>
+      <p class="article-sub">{analysis ? 'From The Common Knowledge Project: an argued interpretation built on its reference entries' : 'From The Common Knowledge Project, the free reference archive'}</p>
     </header>
 
     {d.dek && <p class="lead">{d.dek}</p>}
 
-    <nav class="toc" aria-label="Contents">
+    {!analysis && <nav class="toc" aria-label="Contents">
       <p class="toc-head">Contents</p>
       <ol>
         {sections.filter(s => s.html).map((s, i) => (<li><a href={`#sec-${i}`}><span class="toc-n">{i+1}</span>{s.h}</a></li>))}
@@ -69,7 +75,7 @@ const title = `${d.title} · The Common Knowledge Project · Parallax Press`;
         {p.furtherReading.length > 0 && <li><a href="#sec-reading"><span class="toc-n">{sections.filter(s=>s.html).length + (p.parallax.length>0?2:1)}</span>Further reading</a></li>}
         {related.length > 0 && <li><a href="#sec-seealso"><span class="toc-n">{sections.filter(s=>s.html).length + (p.parallax.length>0?1:0) + (p.furtherReading.length>0?1:0) + 1}</span>See also</a></li>}
       </ol>
-    </nav>
+    </nav>}
 
     <aside class="infobox">
       <p class="ib-title">{d.domain}{d.entry_number != null && <span class="ib-num"> · Entry № {String(d.entry_number).padStart(2,'0')}</span>}</p>
@@ -81,11 +87,13 @@ const title = `${d.title} · The Common Knowledge Project · Parallax Press`;
         </tbody>
       </table>
       <div class="ib-cite">
-        <p class="ib-cite-head">Cite this entry</p>
+        <p class="ib-cite-head">Cite this {analysis ? 'analysis' : 'entry'}</p>
         <p class="ib-cite-text" id="citation">Parallax Press. “{d.title}.” The Common Knowledge Project{d.published ? `, ${fmtDate(d.published)}` : ''}, {citeUrl}. Accessed {today}.</p>
         <button class="copy-cite" id="copy-cite">Copy citation</button>
       </div>
     </aside>
+
+    {analysis && <div class="post-body" set:html={analysisHTML} />}
 
     {sections.filter(s => s.html).map((s, i) => (
       <section class="article-section" id={`sec-${i}`}>
