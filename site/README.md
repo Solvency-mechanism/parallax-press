@@ -73,8 +73,11 @@ Cloudflare Pages serves this whole repository root, including `site/`, `docs/` a
 `public/_redirects` (copied to the root by `npm run publish`) redirects those paths to an
 unpublished address, so readers get the generated `404.html` with a 404 status instead of source
 files. Redirect rules apply even when a file exists. `npm run check` fails if either file is
-missing. Moving the Pages output to a folder that holds only generated files would be the
-cleaner long-term arrangement; it requires a Cloudflare dashboard change.
+missing. Redirect matching is literal, so a deliberately percent-encoded path (for example
+`/%73ite/README.md`) still reaches the file; verified on the 2026-10-19 preview. These files are
+already public in this GitHub repository, so this is hygiene rather than a disclosure. Moving the
+Pages output to a folder that holds only generated files would close it; that requires a
+Cloudflare dashboard change.
 
 ## Publishing an entry (the gate)
 
