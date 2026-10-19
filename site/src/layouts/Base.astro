@@ -9,6 +9,7 @@ const dslug = (d) => d.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{title}</title>
+<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 <link rel="stylesheet" href="/assets/press.css" />
 {styles.map((href) => <link rel="stylesheet" href={href} />)}
 <script is:inline>
@@ -52,6 +53,7 @@ const dslug = (d) => d.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'
     <div class="nav-group">
       <p class="nav-head">Sections</p>
       <ul>
+        <li><a href="/collections/rural-california/" class={current==='Rural California'?'current':undefined}>Rural California</a></li>
         <li><a href="/press/" class={current==='The Press'?'current':undefined}>The Press</a></li>
         <li><a href="/">About &amp; citation</a></li>
         <li><a href="/">Contribute</a></li>
@@ -68,7 +70,7 @@ const dslug = (d) => d.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'
     <p class="footer-name">The Common Knowledge Project</p>
     <p>An evergreen, citable reference archive of the concepts that explain how power, money, and work actually function. A project of Parallax Press.</p>
     <p class="footer-license">Text is free to reproduce under CC BY-SA 4.0. No tracking, no accounts.</p>
-    <nav class="footer-nav"><a href="/">Browse domains</a><a href="/press/">The Press</a><a href="/">About &amp; citation</a><a href="/">Contribute</a></nav>
+    <nav class="footer-nav"><a href="/collections/rural-california/">Rural California</a><a href="/">Browse domains</a><a href="/press/">The Press</a><a href="/">About &amp; citation</a><a href="/">Contribute</a></nav>
   </div>
 </footer>
 <script is:inline src="/assets/controls.js"></script>

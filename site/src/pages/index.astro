@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { domainSlug, contentPath } from '../lib/entry';
+import { domainSlug } from '../lib/entry';
 
 const corpus = await getCollection('entries');
 const published = corpus.filter((e) => e.data.title && e.data.publish === true);
@@ -14,26 +14,22 @@ const glosses = {
   'History': 'How the present arrangement was actually built.',
   'Institutions': 'The durable organizations that carry power across time.',
 };
-const featured = published.find((e) => e.data.format !== 'parallax-post') || published[0];
-const featuredPath = featured ? contentPath(featured.data) : '/press/';
 const count = published.length;
 ---
 <Base title="The Common Knowledge Project" page="home" current="" styles={['/assets/home.css']}>
 <main class="mainpage">
   <section class="mp-welcome">
     <h1>Welcome to The Common Knowledge Project</h1>
-    <p>The free reference archive that anyone can cite: {count} {count === 1 ? 'entry' : 'entries'} explaining how power, money, and work actually function, across {domains.length} domains. A project of Parallax Press.</p>
+    <p>The free reference archive that anyone can cite: {count} published reference entries and Posts explaining how power, money, and work actually function. A project of Parallax Press.</p>
   </section>
 
   <div class="mp-cols">
     <div class="mp-col">
       <section class="mp-box">
-        <h2 class="mp-box-head">Featured entry</h2>
+        <h2 class="mp-box-head">Start with Rural California</h2>
         <div class="mp-box-body">
-          {featured ? (<>
-            <p><a href={featuredPath}><strong>{featured.data.title}</strong></a></p>
-            {featured.data.dek && <p>{featured.data.dek}</p>}
-          </>) : <p>The first entry is on its way.</p>}
+          <p><a href="/collections/rural-california/"><strong>Water, Air, and Health in the San Joaquin Valley</strong></a></p>
+          <p>A field guide and six references following environmental burdens, household costs, and public responses. The first installment of the Rural California collection.</p>
         </div>
       </section>
       <section class="mp-box">

@@ -27,22 +27,42 @@ The content loader reads an explicit publication manifest from the vault two lev
 machine, not on Cloudflare. You build, then commit the generated HTML. The manifest prevents
 malformed or incomplete working notes elsewhere in the CKP from breaking production builds.
 
-## Build & deploy
+## Prepare and review a release
 
-```bash
+Build from an isolated website task worktree inside the CKP folder. The source loader
+reads the sibling vault notes; those notes must contain the exact selected metadata.
+The current manifest selects seven sources for the Rural California release. All seven
+must also declare `publish: true` or the collection build deliberately fails.
+
+```powershell
 cd site
-npm install          # first time only
-npm run deploy       # = build + copy generated entries into the served root (../)
-cd ..
-git add -A && git commit -m "Regenerate site" && git push   # Cloudflare redeploys
+npm ci
+npm run test:release
+npm run test:scrub
+npm run build
+node scripts/check-built-site.mjs dist
+npm run publish
+npm run check
+npm run preview
 ```
 
-- `npm run build` → generates `site/dist/` (entries + a synced copy of the design assets).
-- `npm run publish` → copies `dist/<domain>/<slug>/` into the repo root the site is served from.
-- `npm run preview` → serve `dist/` locally to check before pushing.
+`npm run publish` only copies generated files into this local repository root.
+It does not commit, push, or contact hosting. `npm run preview` serves `site/dist/`
+for a human review of desktop and mobile reading. Stop it when review finishes.
+Do not edit generated HTML. `prebuild` syncs `../assets` into `public/assets`;
+`../assets/press.css` remains the canonical approved design.
 
-`prebuild` automatically syncs `../assets` → `public/assets`, so **`assets/press.css` at the repo
-root is the one place to change the design**; never edit a copy.
+Keep the source changes and generated root pages together for review. Inspect the diff,
+source citations, internal reading paths, and revision dates before any external publication.
+A push to the deployment-connected repository triggers hosting; pushing or deploying
+requires explicit approval after review. The legacy `deploy` script is a local shortcut
+for build/copy/check, but the separate commands above make the review boundaries clear.
+
+`npm run test:release` exercises published-only links, alias and filename resolution,
+source URL preservation, substantive Post headings, and complete reference sections.
+`npm run check` verifies all eight release pages, canonical/citation URLs, the reading order,
+placeholders, and internal paths/fragments across the generated site. These checks do not
+certify the factual claims or remotely fetch cited sources.
 
 ## Publishing an entry (the gate)
 
@@ -103,9 +123,8 @@ Repeat the pair for multiple rows. The generator renders all three CSS treatment
 (slab / margin / ledger) from these pairs.
 
 ### Links & weights
-`[[Wikilinks]]` in the body resolve to other **published** entries (unresolved ones render inert).
-The "N links" weight on the related rail counts citations across the **whole vault** (not just
-published), so the number reflects true prominence. The visual size is √-compressed so a 146-link
+`[[Wikilinks]]` in the body resolve to other **published** entries (unresolved ones render as plain text).
+The "N links" weight on the related rail counts citations across the **publication manifest** (including sources whose publish flag is off), so the number reflects links among the selected sources. The visual size is √-compressed so a 146-link
 concept doesn't blow up the layout.
 
 ## Finalized layout spec (do not regress)

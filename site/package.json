@@ -10,9 +10,13 @@
     "check": "node scripts/check-built-site.mjs",
     "deploy": "npm run build && npm run publish && npm run check",
     "test:scrub": "node --test ../tools/scrub-emdashes.test.mjs",
-    "scrub": "node ../tools/scrub-emdashes.mjs \"../../Case Studies/Rural California Political Economy/The Bill Comes Due in the Body — Health and Environmental Costs in the San Joaquin Valley.md\" src/pages src/layouts ../assets",
+    "scrub": "node ../tools/scrub-emdashes.mjs \"../../Case Studies/Rural California Political Economy/The Bill Comes Due in the Body - Health and Environmental Costs in the San Joaquin Valley.md\" src/pages src/layouts ../assets",
     "scrub:write": "npm run scrub -- --write",
-    "scrub:check": "npm run scrub -- --check"
+    "scrub:check": "npm run scrub -- --check",
+    "test:release": "node --experimental-strip-types --test tests/release.test.mjs"
   },
-  "dependencies": { "astro": "^5", "marked": "^12" }
+  "dependencies": {
+    "astro": "^5",
+    "marked": "^12"
+  }
 }
