@@ -6,7 +6,7 @@ import { postPath } from '../../lib/entry';
 const corpus = await getCollection('entries');
 const posts = corpus
   .filter((entry) => entry.data.title && entry.data.publish === true && entry.data.format === 'parallax-post')
-  .sort((a, b) => String(b.data.published || '').localeCompare(String(a.data.published || '')));
+  .sort((a, b) => (+new Date(b.data.published || 0)) - (+new Date(a.data.published || 0)));
 const fmtDate = (value) => {
   if (!value) return '';
   const date = new Date(value);

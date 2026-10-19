@@ -27,22 +27,57 @@ The content loader reads an explicit publication manifest from the vault two lev
 machine, not on Cloudflare. You build, then commit the generated HTML. The manifest prevents
 malformed or incomplete working notes elsewhere in the CKP from breaking production builds.
 
-## Build & deploy
+## Prepare and review a release
 
-```bash
+Build from an isolated website task worktree inside the CKP folder. The source loader
+reads the sibling vault notes; those notes must contain the exact selected metadata.
+The current manifest selects seven sources for the Rural California release. All seven
+must also declare `publish: true` or the collection build deliberately fails.
+
+```powershell
 cd site
-npm install          # first time only
-npm run deploy       # = build + copy generated entries into the served root (../)
-cd ..
-git add -A && git commit -m "Regenerate site" && git push   # Cloudflare redeploys
+npm ci
+npm run test:release
+npm run test:scrub
+npm run build
+node scripts/check-built-site.mjs dist
+npm run publish
+npm run check
+npm run preview
 ```
 
-- `npm run build` → generates `site/dist/` (entries + a synced copy of the design assets).
-- `npm run publish` → copies `dist/<domain>/<slug>/` into the repo root the site is served from.
-- `npm run preview` → serve `dist/` locally to check before pushing.
+`npm run publish` only copies generated files into this local repository root.
+It does not commit, push, or contact hosting. `npm run preview` serves `site/dist/`
+for a human review of desktop and mobile reading. Stop it when review finishes.
+Do not edit generated HTML. `prebuild` syncs `../assets` into `public/assets`;
+`../assets/press.css` remains the canonical approved design.
 
-`prebuild` automatically syncs `../assets` → `public/assets`, so **`assets/press.css` at the repo
-root is the one place to change the design**; never edit a copy.
+Keep the source changes and generated root pages together for review. Inspect the diff,
+source citations, internal reading paths, and revision dates before any external publication.
+A push to the deployment-connected repository triggers hosting; pushing or deploying
+requires explicit approval after review. The legacy `deploy` script is a local shortcut
+for build/copy/check, but the separate commands above make the review boundaries clear.
+
+`npm run test:release` exercises published-only links, alias, filename and `#heading` resolution,
+source URL preservation, substantive Post headings, and complete reference sections. A reference
+with prose outside the five rendered sections, or a published reference without a domain, fails
+the build rather than losing content or emitting a broken link.
+`npm run check` verifies all eight release pages, canonical/citation URLs, the reading order,
+placeholders, and every internal `href`/`src` path and fragment across the generated site, compared
+case-sensitively as Cloudflare serves them. These checks do not certify the factual claims or
+remotely fetch cited sources.
+
+### What Cloudflare serves
+
+Cloudflare Pages serves this whole repository root, including `site/`, `docs/` and `tools/`.
+`public/_redirects` (copied to the root by `npm run publish`) redirects those paths to an
+unpublished address, so readers get the generated `404.html` with a 404 status instead of source
+files. Redirect rules apply even when a file exists. `npm run check` fails if either file is
+missing. Redirect matching is literal, so a deliberately percent-encoded path (for example
+`/%73ite/README.md`) still reaches the file; verified on the 2026-10-19 preview. These files are
+already public in this GitHub repository, so this is hygiene rather than a disclosure. Moving the
+Pages output to a folder that holds only generated files would close it; that requires a
+Cloudflare dashboard change.
 
 ## Publishing an entry (the gate)
 
@@ -103,10 +138,10 @@ Repeat the pair for multiple rows. The generator renders all three CSS treatment
 (slab / margin / ledger) from these pairs.
 
 ### Links & weights
-`[[Wikilinks]]` in the body resolve to other **published** entries (unresolved ones render inert).
-The "N links" weight on the related rail counts citations across the **whole vault** (not just
-published), so the number reflects true prominence. The visual size is √-compressed so a 146-link
-concept doesn't blow up the layout.
+`[[Wikilinks]]` in the body resolve to other **published** entries (unresolved ones render as plain text).
+The "cited by N" weight on the See also list counts distinct **published** pages that link to the
+target, excluding the target itself. Unpublished Related items show no gloss or weight. The visual
+size is √-compressed so a heavily cited concept doesn't blow up the layout.
 
 ## Finalized layout spec (do not regress)
 

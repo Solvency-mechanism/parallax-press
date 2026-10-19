@@ -1,0 +1,10 @@
+# Cloudflare Pages serves this repository root, which also holds the generator,
+# its docs, and tooling. Redirect rules apply even when a file exists, so these
+# keep source files off the public site. The target does not exist, so readers
+# land on the generated 404 page with a 404 status.
+/site /not-found/ 302
+/site/* /not-found/ 302
+/docs /not-found/ 302
+/docs/* /not-found/ 302
+/tools /not-found/ 302
+/tools/* /not-found/ 302

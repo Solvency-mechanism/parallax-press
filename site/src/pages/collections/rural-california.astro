@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { contentPath } from '../../lib/entry';
+
+const published = (await getCollection('entries')).filter(e => e.data.publish === true);
+const guideTitle = 'The Bill Comes Due in the Body - Health and Environmental Costs in the San Joaquin Valley';
+const readings = [
+  [guideTitle, 'Start here', 'The field guide connects water, air, and pesticide evidence with the question of who carries the costs. It includes listening questions, claims to avoid, and routes to further information.'],
+  ['Externalization', 'Follow the costs', 'A framework for distinguishing costs borne by producers from burdens shifted to households and the public.'],
+  ['Disadvantaged Unincorporated Communities', 'Understand the institutions', 'How community boundaries, service providers, infrastructure, and public decision-making shape access to basic services.'],
+  ['Nitrate and Arsenic Contamination in Disadvantaged Communities', 'Examine drinking water', 'Different contaminants, different pathways: what drinking-water studies show, and what regional findings cannot establish about an individual well.'],
+  ['Human Right to Water', 'Examine public responses', 'California’s statutory policy, implementation programs, and the difference between a recognized right and reliable, affordable service.'],
+  ['Pesticide Exposure in the San Joaquin Valley', 'Examine pesticide exposure', 'What personal-air sampling establishes about exposure, with limits on population coverage and conclusions about health effects.'],
+  ['San Joaquin Valley Air Quality', 'Examine the air', 'Pollutants, multiple sources, geography, and health evidence, with limits on attributing the Valley’s air burden to agriculture.'],
+].map(([title, step, description]) => {
+  const entry = published.find(e => e.data.title === title);
+  if (!entry) throw new Error(`Rural California collection requires published source: ${title}`);
+  return { title, step, description, href: contentPath(entry.data) };
+});
+---
+<Base title="Rural California: Water, Air, and Health in the San Joaquin Valley · Common Knowledge Project" page="collection" current="Rural California" styles={['/assets/post.css']}>
+  <main class="wrap article" id="top">
+    <article>
+      <header class="article-head">
+        <h1 class="article-title">Rural California: Water, Air, and Health in the San Joaquin Valley</h1>
+        <p class="article-sub">A Common Knowledge Project collection</p>
+      </header>
+      <p class="lead">Who carries the health and environmental costs that do not appear in the price of what the Valley produces?</p>
+      <section class="article-section">
+        <h2>Scope and approach</h2>
+        <p>This first installment of the Rural California collection focuses on the San Joaquin Valley. It does not describe all of rural California or assume the same conditions across the Imperial Valley, Sierra foothills, and other regions.</p>
+        <p>Start with the field guide, then follow the reference entries to examine its concepts, evidence, and limits. Studies describe particular places, populations, and periods. Exposure is not a diagnosis; regional disparities do not by themselves establish responsibility for an individual household’s water or health.</p>
+        <p>The collection asks how burdens are distributed and how existing public programs and producer obligations address them. It does not provide a complete accounting of agricultural costs or establish an agriculture-attributable Medi-Cal total.</p>
+      </section>
+      <section class="article-section">
+        <h2>Suggested reading order</h2>
+        <ol class="index-list">
+          {readings.map(item => <li><p><strong>{item.step}: <a href={item.href}>{item.title}</a></strong></p><p>{item.description}</p></li>)}
+        </ol>
+      </section>
+      <section class="article-section">
+        <h2>Using this collection</h2>
+        <p>The field guide is an interpretation assembled for community organizers, canvassers, and interested residents. The six reference entries provide factual foundations and source links. Their cited studies and official resources allow readers to inspect the evidence and pursue more specific questions.</p>
+        <p>For practical information about drinking water, air conditions, and pesticide reporting, start with the field guide’s information and assistance resources. They are entry points rather than a substitute for sampling, medical care, or site-specific advice.</p>
+      </section>
+    </article>
+  </main>
+</Base>

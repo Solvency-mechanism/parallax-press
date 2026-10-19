@@ -14,29 +14,45 @@ export function slug(s: string): string {
 export const domainSlug = (d: string) => slug(d);
 export const entryPath = (domain: string, title: string) => `/${domainSlug(domain)}/${slug(title)}/`;
 export const postPath = (title: string) => `/press/${slug(title)}/`;
-export const contentPath = (data: { title: string; domain?: string; format?: string }) =>
-  data.format === 'parallax-post' ? postPath(data.title) : entryPath(data.domain || '', data.title);
+export const contentPath = (data: { title: string; domain?: string; format?: string }) => {
+  if (data.format === 'parallax-post') return postPath(data.title);
+  // Without a domain the path would be protocol-relative (//slug/), a link to another host.
+  if (!data.domain) throw new Error(`Published reference has no domain: ${data.title}`);
+  return entryPath(data.domain, data.title);
+};
 
-// Smart typography to match the hand-built pages (curly quotes, em dashes already present).
-function smart(s: string): string {
-  return s
-    .replace(/"([^"]*)"/g, '“$1”')
-    .replace(/(\w)'(\w)/g, '$1’$2')
-    .replace(/'/g, '’');
+// [[Target#Heading]] and [[Target^block]] point at the Target note.
+export const linkTarget = (target: string) => target.replace(/[#^].*$/, '').trim();
+
+// Markdown is preserved verbatim: changing quotes before parsing corrupts link
+// destinations, code, and exact wikilink identities.
+const escapeHTML = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+export function makeResolver(entries: any[]) {
+  const paths = new Map<string, string>();
+  for (const entry of entries.filter(e => e.data.publish === true && e.data.title)) {
+    const aliases = entry.data.aliases;
+    const names = [entry.data.title, ...(typeof aliases === 'string' ? [aliases] : aliases || [])];
+    if (entry.filePath) names.push(entry.filePath.replace(/\\/g, '/').split('/').pop().replace(/\.md$/i, ''));
+    for (const name of names) {
+      const path = contentPath(entry.data);
+      if (paths.has(name) && paths.get(name) !== path) throw new Error(`Ambiguous published name: ${name}`);
+      paths.set(name, path);
+    }
+  }
+  return (target: string) => paths.get(linkTarget(target)) || null;
 }
 
-// Resolve [[Target]] / [[Target|alias]] to anchor tags. `resolve` maps a target
-// title to a path; unknown targets render as a dead clink (matches current site).
 function wikilinks(md: string, resolve: (t: string) => string | null): string {
   return md.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_m, target, alias) => {
-    const text = (alias || target).trim();
-    const href = resolve(target.trim()) || '#';
-    return `<a class="clink" href="${href}">${text}</a>`;
+    const text = escapeHTML((alias || target).trim());
+    const href = resolve(target.trim());
+    return href ? `<a class="clink" href="${escapeHTML(href)}">${text}</a>` : `<span class="unpublished-reference">${text}</span>`;
   });
 }
 
 function inlineHTML(md: string, resolve: (t: string) => string | null): string {
-  return marked.parse(wikilinks(smart(md), resolve)) as string;
+  return marked.parse(wikilinks(md, resolve)) as string;
 }
 
 function pullRelated(text: string) {
@@ -50,10 +66,9 @@ function pullRelated(text: string) {
 }
 
 export function renderPost(body: string, resolve: (t: string) => string | null) {
-  // The page template owns the public H1 and dek. Vault notes retain their
-  // authoring H1 and subtitle, so remove those two leading headings here.
+  // The page template owns the public H1. Preserve all substantive headings.
   let text = body.replace(/^\s*#\s+.*\n+/, '');
-  text = text.replace(/^\s*##\s+.*\n+/, '');
+  // An italic subtitle is part of the public body; retain every substantive H2.
   const extracted = pullRelated(text);
   return {
     html: inlineHTML(extracted.body.trim(), resolve),
@@ -84,7 +99,9 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
   text = extracted.body;
   const related = extracted.related;
   // split on ## headings
-  const parts = text.split(/^##\s+/m).slice(1);
+  const [preamble, ...parts] = text.split(/^##\s+/m);
+  // The template renders only the canonical sections, so anything else would vanish silently.
+  if (preamble.replace(/^\s*---\s*$/m, '').trim()) throw new Error('Reference has prose before its first section');
   const sec: Record<string, string> = {};
   let parallaxRaw = '';
   for (const p of parts) {
@@ -93,6 +110,7 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
     const bodyMd = p.slice(nl + 1).replace(/\n---\s*$/, '').trim();
     if (head.startsWith('what they say')) parallaxRaw = bodyMd;
     else if (HEAD_MAP[head]) sec[HEAD_MAP[head]] = bodyMd;
+    else throw new Error(`Reference has a section the template cannot render: ${head}`);
   }
   // parallax pairs: split on "**What they say:**"
   const parallax: ParallaxPair[] = [];
@@ -109,7 +127,7 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
     .map(line => {
       const i = line.indexOf(' — ');
       const [title, meta] = i >= 0 ? [line.slice(0, i), line.slice(i + 3)] : [line, ''];
-      return { title: inlineHTML(smart(title), resolve), meta: inlineHTML(smart(meta), resolve) };
+      return { title: inlineHTML(title, resolve), meta: inlineHTML(meta, resolve) };
     });
   return {
     whatItIs: inlineHTML(sec.whatItIs || '', resolve),

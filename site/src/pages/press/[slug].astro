@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { contentPath, postPath, renderPost } from '../../lib/entry';
+import { contentPath, postPath, renderPost, makeResolver } from '../../lib/entry';
 
 export async function getStaticPaths() {
   const corpus = await getCollection('entries');
@@ -15,15 +15,14 @@ export async function getStaticPaths() {
 
 const { entry, published, corpus } = Astro.props;
 const d = entry.data;
-const byPub = new Map(published.map((e) => [e.data.title, e]));
-const resolve = (title) => byPub.has(title) ? contentPath(byPub.get(title).data) : null;
+const resolve = makeResolver(published);
 const post = renderPost(entry.body || '', resolve);
 const byCorpus = new Map(corpus.map((e) => [e.data.title, e]));
 const related = post.related.map((r) => {
   const target = byCorpus.get(r.title);
   return {
     name: r.alias || r.title,
-    href: target?.data?.publish === true ? contentPath(target.data) : null,
+    href: resolve(r.title),
     domain: target?.data?.domain || '',
   };
 });
@@ -34,7 +33,7 @@ const fmtDate = (value) => {
 };
 const today = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 const canonicalPath = postPath(d.title);
-const citeUrl = `parallaxpress.org${canonicalPath}`;
+const citeUrl = `https://parallaxpress.org${canonicalPath}`;
 const title = `${d.title} · Parallax Press`;
 ---
 <Base title={title} page="post" current="The Press" styles={['/assets/post.css']}>
@@ -44,6 +43,7 @@ const title = `${d.title} · Parallax Press`;
         <span class="post-kicker">Parallax Post</span>
         <h1 class="article-title">{d.title}</h1>
         <p class="article-sub">From The Press, Parallax Press{d.published ? ` · ${fmtDate(d.published)}` : ''}</p>
+        {d.revised && <p class="article-sub">Revised {fmtDate(d.revised)}</p>}
       </header>
       {d.dek && <p class="lead">{d.dek}</p>}
       <div class="post-body" set:html={post.html} />
@@ -56,7 +56,7 @@ const title = `${d.title} · Parallax Press`;
       </aside>
       {related.length > 0 && (
         <section class="article-section" id="sec-seealso"><h2>See also</h2>
-          <ul class="see-also">{related.map((item) => (<li><a href={item.href || '#'}>{item.name}</a></li>))}</ul>
+          <ul class="see-also">{related.map((item) => (<li><>{item.href ? <a href={item.href}>{item.name}</a> : <span>{item.name} (not yet published)</span>}</></li>))}</ul>
         </section>
       )}
     </article>
