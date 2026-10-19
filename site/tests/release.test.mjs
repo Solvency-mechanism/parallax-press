@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseEntry, renderPost, makeResolver } from '../src/lib/entry.ts';
+import { parseEntry, renderPost, makeResolver, isAnalysis } from '../src/lib/entry.ts';
 
 const resolve = makeResolver([
   { data: { title: 'Published \"water\"', domain: 'The State', publish: true, aliases: ['Water alias'] }, filePath: 'notes/Water source.md' },
@@ -69,4 +69,53 @@ test('reference content outside the five rendered sections fails the build inste
   assert.throws(() => parseEntry(`# T\n\nStray prose.\n\n${sections}`, resolve), /before its first section/);
   assert.throws(() => parseEntry(`# T\n\n${sections}## Timeline\nLost.\n`, resolve), /cannot render: timeline/);
   assert.doesNotThrow(() => parseEntry(`# T\n\n${sections}`, resolve));
+});
+
+test('a comparison without the canonical labels, or a Related line without its rule, fails instead of vanishing', () => {
+  const head = `## What It Is
+A.
+## Why It Matters
+B.
+## How It Works in Practice
+C.
+`;
+  const reading = `## Further Reading
+- z
+`;
+  assert.throws(() => parseEntry(`# T
+
+${head}## What They Say vs. What's True
+**Public framing:** x
+
+**Evidence check:** y
+${reading}`, resolve), /What they say/);
+  assert.throws(() => parseEntry(`# T
+
+${head}## What They Say vs. What's True
+**What they say:** x
+**What's true:** y
+${reading}
+**Related:** [[Water source]]`, resolve), /--- rule/);
+});
+
+test('Layer 2 analyses keep their own headings and Related footer; Posts and references are not analyses', () => {
+  assert.equal(isAnalysis({ layer: 2 }), true);
+  assert.equal(isAnalysis({ layer: '2' }), true);
+  assert.equal(isAnalysis({ layer: 1 }), false);
+  assert.equal(isAnalysis({ layer: 2, format: 'parallax-post' }), false);
+  const { html, related } = renderPost(`# Argument
+
+## Thesis
+Claim [[Water alias]].
+
+## Open Questions
+- Which?
+
+---
+
+**Related:** [[Water source]] · [[Private draft]]`, resolve);
+  assert.match(html, /<h2>Thesis<\/h2>/);
+  assert.match(html, /<h2>Open Questions<\/h2>/);
+  assert.doesNotMatch(html, /Related/);
+  assert.deepEqual(related.map(r => r.title), ['Water source', 'Private draft']);
 });

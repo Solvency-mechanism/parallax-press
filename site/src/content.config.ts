@@ -13,6 +13,14 @@ export const PUBLISHED_SOURCES = [
   'Case Studies/Rural California Political Economy/Human Right to Water.md',
 
   'Case Studies/Rural California Political Economy/The Bill Comes Due in the Body - Health and Environmental Costs in the San Joaquin Valley.md',
+
+  // Water consolidation: following a right to the tap.
+  'Case Studies/Rural California Political Economy/Drinking Water System Consolidation.md',
+  'Case Studies/Rural California Political Economy/East Orosi Drinking Water Consolidation.md',
+  'Case Studies/Rural California Political Economy/Matheny Tract Drinking Water Consolidation.md',
+  'Case Studies/Rural California Political Economy/Tooleville Drinking Water Consolidation.md',
+  'Case Studies/Rural California Political Economy/From the Right to Water to Water at the Tap.md',
+  "Case Studies/Rural California Political Economy/A Right Is Not Yet a Tap - Following East Orosi's Water Project.md",
 ];
 
 const entries = defineCollection({
@@ -20,6 +28,7 @@ const entries = defineCollection({
   schema: z.object({
     title: z.string().optional(),
     domain: z.string().optional(),
+    layer: z.union([z.number(), z.string()]).optional(),
     status: z.string().optional(),
     publish: z.boolean().optional(),
     entry_number: z.number().optional(),

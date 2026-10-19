@@ -65,6 +65,10 @@ function pullRelated(text: string) {
   return { body, related };
 }
 
+// CKP Layer 2 notes are argued interpretations. They keep their own headings,
+// so they render like a Post body at their domain path rather than as a reference.
+export const isAnalysis = (data: { layer?: unknown; format?: string }) => Number(data.layer) === 2 && data.format !== 'parallax-post';
+
 export function renderPost(body: string, resolve: (t: string) => string | null) {
   // The page template owns the public H1. Preserve all substantive headings.
   let text = body.replace(/^\s*#\s+.*\n+/, '');
@@ -121,6 +125,10 @@ export function parseEntry(body: string, resolve: (t: string) => string | null):
       truth: inlineHTML(truth.trim(), resolve),
     });
   }
+  // Other labels (e.g. "**Public framing:**") match no pair, so the section would vanish.
+  if (parallaxRaw && parallax.length === 0) throw new Error('Reference comparison needs **What they say:** / **What\'s true:** pairs');
+  // Without the --- rule the Related footer would render as a source in Further reading.
+  if (/\*\*Related:\*\*/.test(sec.furtherReading || '')) throw new Error('Reference **Related:** line needs a --- rule before it');
   // further reading: each bullet "Title — meta"
   const furtherReading: Reading[] = (sec.furtherReading || '')
     .split(/\n/).map(l => l.replace(/^[-*]\s+/, '').trim()).filter(Boolean)
